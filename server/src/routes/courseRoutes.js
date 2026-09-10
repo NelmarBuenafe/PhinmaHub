@@ -30,6 +30,12 @@ import {
   updateLesson,
   updateModule,
 } from "../controllers/learningController.js";
+import {
+  getStudentDashboard,
+  getStudentProfile,
+  listStudentAnnouncements,
+  listStudentAssignmentsOverview,
+} from "../controllers/studentController.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { authorizeRole } from "../middleware/authorizeRole.js";
 
@@ -38,6 +44,10 @@ publicCourseRouter.get("/", listPublicCourses);
 
 export const studentCourseRouter = Router();
 studentCourseRouter.use(authenticate, authorizeRole("student"));
+studentCourseRouter.get("/dashboard", getStudentDashboard);
+studentCourseRouter.get("/assignments", listStudentAssignmentsOverview);
+studentCourseRouter.get("/announcements", listStudentAnnouncements);
+studentCourseRouter.get("/profile", getStudentProfile);
 studentCourseRouter.get("/courses", listStudentCourses);
 studentCourseRouter.get("/courses/:courseId/learning", studentLearning);
 studentCourseRouter.get("/courses/:courseId/assignments", listStudentAssignments);

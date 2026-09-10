@@ -1,5 +1,5 @@
-import CourseDashboard from "../../components/common/CourseDashboard.jsx";
+import StudentDashboardPage from "./StudentDashboardPage.jsx";
 
 export default function StudentPage() {
-  return <CourseDashboard role="Student" />;
+  return <StudentDashboardPage />;
 }

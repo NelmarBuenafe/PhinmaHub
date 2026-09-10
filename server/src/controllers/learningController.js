@@ -44,8 +44,9 @@ function sendValidationError(response, parsed) {
 }
 
 function sendUnexpected(next, message, cause) {
-  cause.message = message;
-  return next(cause);
+  const error = new Error(message, { cause });
+  error.statusCode = cause?.statusCode || cause?.status;
+  return next(error);
 }
 
 async function getOwnedCourse(courseId, teacherId) {
@@ -68,7 +69,7 @@ async function getStudentCourse(courseId, studentId) {
     .select("course_id,courses(id,course_code,title,description,status,visibility)")
     .eq("course_id", courseId)
     .eq("student_id", studentId)
-    .in("status", ["active", "completed"])
+    .eq("status", "active")
     .maybeSingle();
   if (error) throw error;
   if (!data?.courses) return { error: "You are not enrolled in this course.", status: 403 };

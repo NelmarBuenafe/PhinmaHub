@@ -468,6 +468,7 @@ $$;
 create or replace function private.protect_submission_grading_fields()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
