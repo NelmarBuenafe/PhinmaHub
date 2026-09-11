@@ -107,6 +107,12 @@ export default function StudentDashboardPage() {
               >
                 View my courses <ArrowRight size={17} />
               </Link>
+              <Link
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-3 font-bold text-emerald-800 hover:bg-emerald-50"
+                to="/student/join-course"
+              >
+                Join a course
+              </Link>
             </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

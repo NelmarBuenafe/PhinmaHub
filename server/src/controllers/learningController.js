@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { supabase } from "../config/supabase.js";
+import { publicMaterialFields } from "./lessonMaterialController.js";
 
 const uuidSchema = z.string().uuid();
 const moduleSchema = z.object({
@@ -66,7 +67,7 @@ async function getOwnedCourse(courseId, teacherId) {
 async function getStudentCourse(courseId, studentId) {
   const { data, error } = await supabase
     .from("enrollments")
-    .select("course_id,courses(id,course_code,title,description,status,visibility)")
+    .select("course_id,courses(id,teacher_id,course_code,title,description,status,visibility)")
     .eq("course_id", courseId)
     .eq("student_id", studentId)
     .eq("status", "active")
@@ -109,6 +110,41 @@ async function getOwnedAssignment(assignmentId, teacherId) {
   if (!assignment) return { error: "Assignment not found.", status: 404 };
   const result = await getOwnedCourse(assignment.course_id, teacherId);
   return result.course ? { assignment, course: result.course } : result;
+}
+
+async function removeLessonMaterialFiles(lessonIds) {
+  if (!lessonIds.length) return;
+  const { data: materials, error } = await supabase
+    .from("lesson_materials")
+    .select("storage_path")
+    .in("lesson_id", lessonIds)
+    .not("storage_path", "is", null);
+  if (error?.code === "PGRST205") return;
+  if (error) throw error;
+
+  const paths = (materials || []).map((material) => material.storage_path).filter(Boolean);
+  if (!paths.length) return;
+  const { error: storageError } = await supabase.storage
+    .from("lesson-materials")
+    .remove(paths);
+  if (storageError) throw storageError;
+}
+
+export function attachLessonCompletionState(lessons, progressRecords) {
+  const progressByLesson = new Map(
+    (progressRecords || []).map((item) => [item.lesson_id, item]),
+  );
+
+  return (lessons || []).map((lesson) => {
+    const progress = progressByLesson.get(lesson.id);
+    return {
+      ...lesson,
+      completion: {
+        isCompleted: progress?.is_completed === true,
+        completedAt: progress?.completed_at || null,
+      },
+    };
+  });
 }
 
 export async function updateCourseSettings(request, response, next) {
@@ -254,6 +290,12 @@ export async function deleteModule(request, response, next) {
   try {
     const owned = await getOwnedModule(moduleId.data, request.auth.user.id);
     if (!owned.module) return response.status(owned.status).json({ success: false, message: owned.error });
+    const { data: lessons, error: lessonError } = await supabase
+      .from("lessons")
+      .select("id")
+      .eq("module_id", moduleId.data);
+    if (lessonError) throw lessonError;
+    await removeLessonMaterialFiles((lessons || []).map((lesson) => lesson.id));
     const { error } = await supabase.from("course_modules").delete().eq("id", moduleId.data);
     if (error) throw error;
     return response.json({ success: true, message: "Module deleted." });
@@ -299,6 +341,7 @@ export async function deleteLesson(request, response, next) {
     if (!lesson) return response.status(404).json({ success: false, message: "Lesson not found." });
     const owned = await getOwnedModule(lesson.module_id, request.auth.user.id);
     if (!owned.module) return response.status(owned.status).json({ success: false, message: owned.error });
+    await removeLessonMaterialFiles([lesson.id]);
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId.data);
     if (error) throw error;
     return response.json({ success: true, message: "Lesson deleted." });
@@ -343,6 +386,38 @@ export async function updateAssignment(request, response, next) {
   } catch (cause) { return sendUnexpected(next, "Unable to update assignment", cause); }
 }
 
+export async function deleteAssignment(request, response, next) {
+  const assignmentId = uuidSchema.safeParse(request.params.assignmentId);
+  if (!assignmentId.success) return sendValidationError(response, assignmentId);
+  try {
+    const owned = await getOwnedAssignment(assignmentId.data, request.auth.user.id);
+    if (!owned.assignment) {
+      return response.status(owned.status).json({ success: false, message: owned.error });
+    }
+
+    const { count, error: submissionError } = await supabase
+      .from("submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("assignment_id", assignmentId.data);
+    if (submissionError) throw submissionError;
+    if (count > 0) {
+      return response.status(409).json({
+        success: false,
+        message: "This assignment cannot be deleted because Student submissions already exist.",
+      });
+    }
+
+    const { error } = await supabase
+      .from("assignments")
+      .delete()
+      .eq("id", assignmentId.data);
+    if (error) throw error;
+    return response.json({ success: true, message: "Assignment deleted." });
+  } catch (cause) {
+    return sendUnexpected(next, "Unable to delete assignment", cause);
+  }
+}
+
 export async function listAssignmentSubmissions(request, response, next) {
   const assignmentId = uuidSchema.safeParse(request.params.assignmentId);
   if (!assignmentId.success) return sendValidationError(response, assignmentId);
@@ -381,18 +456,67 @@ export async function studentLearning(request, response, next) {
   try {
     const access = await getStudentCourse(courseId.data, request.auth.user.id);
     if (!access.course) return response.status(access.status).json({ success: false, message: access.error });
+    const { data: teacher, error: teacherError } = await supabase
+      .from("profiles")
+      .select("first_name,last_name")
+      .eq("id", access.course.teacher_id)
+      .maybeSingle();
+    if (teacherError) throw teacherError;
+
     const { data: modules, error } = await supabase.from("course_modules").select("id,title,description,display_position").eq("course_id", courseId.data).order("display_position");
     if (error) throw error;
     const moduleIds = (modules || []).map((item) => item.id);
     const { data: lessons, error: lessonError } = moduleIds.length ? await supabase.from("lessons").select("id,module_id,title,content,learning_objectives,display_position").in("module_id", moduleIds).eq("is_published", true).order("display_position") : { data: [], error: null };
     if (lessonError) throw lessonError;
     const lessonIds = (lessons || []).map((item) => item.id);
+    const materialResult = lessonIds.length
+      ? await supabase
+          .from("lesson_materials")
+          .select(publicMaterialFields())
+          .in("lesson_id", lessonIds)
+          .order("sort_order")
+          .order("created_at")
+      : { data: [], error: null };
+    if (materialResult.error && materialResult.error.code !== "PGRST205") {
+      throw materialResult.error;
+    }
+    const materials = materialResult.data || [];
     const { data: progress, error: progressError } = lessonIds.length ? await supabase.from("lesson_progress").select("lesson_id,is_completed,completed_at").eq("student_id", request.auth.user.id).in("lesson_id", lessonIds) : { data: [], error: null };
     if (progressError) throw progressError;
-    const progressByLesson = new Map((progress || []).map((item) => [item.lesson_id, item]));
+    const materialsByLesson = new Map();
+    for (const material of materials || []) {
+      materialsByLesson.set(material.lesson_id, [
+        ...(materialsByLesson.get(material.lesson_id) || []),
+        material,
+      ]);
+    }
+    const lessonsWithCompletion = attachLessonCompletionState(lessons, progress)
+      .map((lesson) => ({
+        ...lesson,
+        materials: materialsByLesson.get(lesson.id) || [],
+      }));
     const grouped = new Map();
-    for (const lesson of lessons || []) grouped.set(lesson.module_id, [...(grouped.get(lesson.module_id) || []), { ...lesson, progress: progressByLesson.get(lesson.id) || { is_completed: false } }]);
-    return response.json({ success: true, data: { course: access.course, modules: (modules || []).map((item) => ({ ...item, lessons: grouped.get(item.id) || [] })) } });
+    for (const lesson of lessonsWithCompletion) {
+      grouped.set(lesson.module_id, [
+        ...(grouped.get(lesson.module_id) || []),
+        lesson,
+      ]);
+    }
+    return response.json({
+      success: true,
+      data: {
+        course: {
+          ...access.course,
+          teacher_name:
+            [teacher?.first_name, teacher?.last_name].filter(Boolean).join(" ") ||
+            "Faculty instructor",
+        },
+        modules: (modules || []).map((item) => ({
+          ...item,
+          lessons: grouped.get(item.id) || [],
+        })),
+      },
+    });
   } catch (cause) { return sendUnexpected(next, "Unable to load course learning content", cause); }
 }
 

@@ -70,6 +70,9 @@ const StudentPage = lazy(() => import("../pages/student/StudentPage.jsx"));
 const StudentCoursesPage = lazy(
   () => import("../pages/student/StudentCoursesPage.jsx"),
 );
+const StudentJoinCoursePage = lazy(
+  () => import("../pages/student/StudentJoinCoursePage.jsx"),
+);
 const StudentAssignmentsPage = lazy(
   () => import("../pages/student/StudentAssignmentsPage.jsx"),
 );
@@ -91,6 +94,9 @@ const CreateCoursePage = lazy(
 );
 const TeacherCourseOverviewPage = lazy(
   () => import("../pages/teacher/TeacherCourseOverviewPage.jsx"),
+);
+const TeacherLessonMaterialsPage = lazy(
+  () => import("../pages/teacher/TeacherLessonMaterialsPage.jsx"),
 );
 
 function AppRoutes() {
@@ -202,6 +208,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/teacher/courses/:courseId/materials"
+          element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherLessonMaterialsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/student"
           element={
             <ProtectedRoute requiredRole="student">
@@ -214,6 +228,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="student">
               <StudentCoursesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/join-course"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <StudentJoinCoursePage />
             </ProtectedRoute>
           }
         />

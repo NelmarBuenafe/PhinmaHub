@@ -5,3 +5,5 @@ dist/
 client/.env
 client/.env.local
 server/.env
+server/.env.qa
+server/.qa-fixtures.json

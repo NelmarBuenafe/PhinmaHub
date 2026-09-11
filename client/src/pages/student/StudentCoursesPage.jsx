@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import StudentNav from "../../components/student/StudentNav.jsx";
 import { useCourseList } from "../../utils/useCourseList.js";
@@ -14,13 +14,28 @@ function ProgressBar({ value }) {
 
 export default function StudentCoursesPage() {
   const { courses, error, loading, reload } = useCourseList("/student/courses");
+  const location = useLocation();
+  const successMessage = location.state?.success;
 
   return (
     <main className="min-h-screen bg-slate-50">
       <StudentNav />
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Student workspace</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-950">My Courses</h1>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className="mt-2 text-3xl font-black text-slate-950">My Courses</h1>
+          <Link
+            className="inline-flex items-center rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white hover:bg-emerald-800"
+            to="/student/join-course"
+          >
+            + Join Course
+          </Link>
+        </div>
+        {successMessage && (
+          <p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+            {successMessage}
+          </p>
+        )}
         {loading && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading your courses..." /></div>}
         {error && (
           <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
@@ -32,7 +47,13 @@ export default function StudentCoursesPage() {
         )}
         {!loading && !error && !courses.length && (
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
-            You are not enrolled in any courses yet.
+            <p>You haven&apos;t joined any courses yet.</p>
+            <Link
+              className="mt-4 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white hover:bg-emerald-800"
+              to="/student/join-course"
+            >
+              Join a Course
+            </Link>
           </div>
         )}
         {!loading && !error && courses.length > 0 && (

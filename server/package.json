@@ -8,7 +8,13 @@
     "start": "node src/server.js",
     "test": "node --test",
     "verify:schema": "node scripts/verifySchema.js",
-    "verify:admin-data": "node scripts/verifyAdminData.js"
+    "verify:admin-data": "node scripts/verifyAdminData.js",
+    "qa:discover": "node scripts/discoverQaAccounts.js",
+    "qa:seed": "node scripts/seedQaData.js",
+    "qa:test": "node scripts/runQaFlow.js",
+    "qa:cleanup": "node scripts/cleanupQaData.js",
+    "qa:reset": "node scripts/cleanupQaData.js && node scripts/seedQaData.js",
+    "reset:local-admin": "node scripts/resetLocalAdminPassword.js"
   },
   "keywords": [],
   "author": "",

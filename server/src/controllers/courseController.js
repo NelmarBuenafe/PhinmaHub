@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const COURSE_FIELDS =
   "id,teacher_id,course_code,title,description,category,difficulty,thumbnail_url,visibility,status,created_at,updated_at";
+const TEACHER_COURSE_FIELDS = `${COURSE_FIELDS},join_code`;
 
 const cleanText = (label, maximumLength) =>
   z
@@ -27,6 +28,30 @@ export const courseCreationSchema = z
   .strict();
 
 const courseIdSchema = z.string().uuid();
+
+export const joinCourseSchema = z
+  .object({
+    joinCode: z
+      .string()
+      .trim()
+      .min(1, "Please enter a course join code.")
+      .max(32, "Course join code is too long.")
+      .transform((value) => value.toUpperCase()),
+  })
+  .strict();
+
+export function normalizeJoinCode(value) {
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
+}
+
+export function buildStudentEnrollmentRecord(courseId, studentId, enrolledAt) {
+  return {
+    course_id: courseId,
+    student_id: studentId,
+    status: "active",
+    enrolled_at: enrolledAt,
+  };
+}
 
 export function generateJoinCode() {
   return randomBytes(6).toString("hex").toUpperCase();
@@ -184,7 +209,7 @@ async function addEnrollmentCounts(courses) {
 async function getTeacherCourses(teacherId) {
   const { data, error } = await supabase
     .from("courses")
-    .select(COURSE_FIELDS)
+    .select(TEACHER_COURSE_FIELDS)
     .eq("teacher_id", teacherId)
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -266,6 +291,91 @@ export async function listStudentCourses(request, response, next) {
     });
   } catch (cause) {
     return fail(next, "Unable to load student course details", cause);
+  }
+}
+
+export async function joinStudentCourse(request, response, next) {
+  const values = joinCourseSchema.safeParse(request.body);
+  if (!values.success) {
+    return response.status(400).json({
+      success: false,
+      code: "INVALID_JOIN_CODE",
+      message: values.error.issues[0]?.message || "Please enter a course join code.",
+    });
+  }
+
+  const studentId = request.auth.user.id;
+  const joinCode = normalizeJoinCode(values.data.joinCode);
+
+  try {
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
+      .select("id,course_code,title,teacher_id,status,visibility")
+      .eq("join_code", joinCode)
+      .maybeSingle();
+    if (courseError) throw courseError;
+    if (!course || course.status === "archived") {
+      return response.status(404).json({
+        success: false,
+        code: "INVALID_JOIN_CODE",
+        message: "Invalid course join code.",
+      });
+    }
+
+    const { data: existing, error: enrollmentError } = await supabase
+      .from("enrollments")
+      .select("id,status,enrolled_at,course_id,student_id")
+      .eq("course_id", course.id)
+      .eq("student_id", studentId)
+      .maybeSingle();
+    if (enrollmentError) throw enrollmentError;
+
+    if (existing?.status === "active" || existing?.status === "completed") {
+      return response.status(409).json({
+        success: false,
+        code: "ALREADY_ENROLLED",
+        message: "You are already enrolled in this course.",
+      });
+    }
+
+    const enrolledAt = new Date().toISOString();
+    if (existing?.status === "removed") {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .update({ status: "active", enrolled_at: enrolledAt })
+        .eq("id", existing.id)
+        .select("id,status,enrolled_at,course_id,student_id")
+        .single();
+      if (error) throw error;
+      return response.status(200).json({
+        success: true,
+        data: { enrollment: data, course },
+        message: "You rejoined the course successfully.",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("enrollments")
+      .insert(buildStudentEnrollmentRecord(course.id, studentId, enrolledAt))
+      .select("id,status,enrolled_at,course_id,student_id")
+      .single();
+    if (error) {
+      if (error.code === "23505") {
+        return response.status(409).json({
+          success: false,
+          code: "ALREADY_ENROLLED",
+          message: "You are already enrolled in this course.",
+        });
+      }
+      throw error;
+    }
+    return response.status(201).json({
+      success: true,
+      data: { enrollment: data, course },
+      message: "You joined the course successfully.",
+    });
+  } catch (cause) {
+    return fail(next, "Unable to join the course", cause);
   }
 }
 
@@ -385,7 +495,7 @@ export async function getTeacherCourse(request, response, next) {
 
   const { data: course, error } = await supabase
     .from("courses")
-    .select(COURSE_FIELDS)
+    .select(TEACHER_COURSE_FIELDS)
     .eq("id", parsedId.data)
     .maybeSingle();
   if (error) return fail(next, "Unable to load the course", error);
