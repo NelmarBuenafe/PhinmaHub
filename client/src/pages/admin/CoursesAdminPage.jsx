@@ -95,7 +95,12 @@ function CoursesAdminPage() {
         <ErrorState onRetry={list.load} />
       ) : list.data.length ? (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white">
+          <div
+            aria-label="Course management table"
+            className="overflow-x-auto rounded-2xl border bg-white"
+            role="region"
+            tabIndex="0"
+          >
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
@@ -117,7 +122,7 @@ function CoursesAdminPage() {
               </thead>
               <tbody>
                 {list.data.map((course) => (
-                  <tr className="border-t" key={course.id}>
+                  <tr className="ph-table-row border-t" key={course.id}>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         {course.thumbnail_url ? (

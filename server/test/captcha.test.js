@@ -2,11 +2,29 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   CAPTCHA_LIFETIME_MS,
+  captchaCookieOptions,
   createCaptchaChallenge,
   verifyCaptchaChallenge,
 } from "../src/utils/captcha.js";
 
 const secret = "test-secret-that-is-long-enough-for-hmac-validation";
+
+test("CAPTCHA cookies are cross-site capable only in production", () => {
+  assert.deepEqual(captchaCookieOptions({ NODE_ENV: "development" }), {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: CAPTCHA_LIFETIME_MS,
+    path: "/api/auth",
+  });
+  assert.deepEqual(captchaCookieOptions({ NODE_ENV: "production" }), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: CAPTCHA_LIFETIME_MS,
+    path: "/api/auth",
+  });
+});
 
 function answerFromQuestion(question) {
   const match = question.match(/^(\d+) \+ (\d+) = \?$/);

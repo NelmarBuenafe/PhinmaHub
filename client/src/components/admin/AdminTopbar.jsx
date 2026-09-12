@@ -53,11 +53,11 @@ function AdminTopbar({ onMenu }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-[0_1px_18px_rgb(15_23_42/0.04)] backdrop-blur-xl">
       <div className="flex h-20 items-center gap-4 px-4 sm:px-6">
         <button
           aria-label="Open administration menu"
-          className="rounded-xl border border-slate-200 p-2.5 lg:hidden"
+          className="ph-action rounded-xl border border-slate-200 p-2.5 hover:bg-slate-50 lg:hidden"
           onClick={onMenu}
           type="button"
         >
@@ -100,7 +100,7 @@ function AdminTopbar({ onMenu }) {
         </form>
         <button
           aria-label="Review pending notifications"
-          className="rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:bg-slate-50"
+          className="ph-action rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
           onClick={() => navigate("/admin/approvals")}
           type="button"
         >
@@ -108,7 +108,10 @@ function AdminTopbar({ onMenu }) {
         </button>
         <div className="relative">
           <button
+            aria-controls="admin-account-menu"
             aria-expanded={open}
+            aria-haspopup="menu"
+            aria-label="Open administrator account menu"
             className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-slate-50"
             onClick={() => setOpen(!open)}
             type="button"
@@ -133,21 +136,34 @@ function AdminTopbar({ onMenu }) {
             <ChevronDown className="hidden xl:block" size={15} />
           </button>
           {open && (
-            <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+            <div
+              className="ph-dialog-panel absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+              id="admin-account-menu"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setOpen(false);
+              }}
+              role="menu"
+            >
               <Link
                 className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
+                onClick={() => setOpen(false)}
+                role="menuitem"
                 to="/admin/settings"
               >
                 View profile
               </Link>
               <Link
                 className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
+                onClick={() => setOpen(false)}
+                role="menuitem"
                 to="/admin/settings"
               >
                 Settings
               </Link>
               <Link
                 className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
+                onClick={() => setOpen(false)}
+                role="menuitem"
                 to="/"
               >
                 Return to public site
@@ -155,6 +171,7 @@ function AdminTopbar({ onMenu }) {
               <button
                 className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
                 onClick={logout}
+                role="menuitem"
                 type="button"
               >
                 Logout

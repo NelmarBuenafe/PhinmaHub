@@ -408,7 +408,12 @@ export function StudyToolsPage() {
           >
             Add Study Tool
           </button>
-          <div className="overflow-x-auto rounded-2xl border bg-white">
+          <div
+            aria-label="Study tools table"
+            className="overflow-x-auto rounded-2xl border bg-white"
+            role="region"
+            tabIndex="0"
+          >
             <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -423,7 +428,7 @@ export function StudyToolsPage() {
               </thead>
               <tbody>
                 {data.map((item) => (
-                  <tr className="border-t" key={item.id}>
+                  <tr className="ph-table-row border-t" key={item.id}>
                     <td className="px-4 py-4 font-bold">{item.title}</td>
                     <td className="px-4">{item.tool_type}</td>
                     <td className="max-w-52 truncate px-4">{item.url}</td>
@@ -578,7 +583,12 @@ export function AuditLogsPage() {
     >
       {({ data, pagination, params, setParams }) => (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white">
+          <div
+            aria-label="Audit logs table"
+            className="overflow-x-auto rounded-2xl border bg-white"
+            role="region"
+            tabIndex="0"
+          >
             <table className="w-full min-w-[750px] text-left text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -598,7 +608,7 @@ export function AuditLogsPage() {
               </thead>
               <tbody>
                 {data.map((item) => (
-                  <tr className="border-t" key={item.id}>
+                  <tr className="ph-table-row border-t" key={item.id}>
                     <td className="px-4 py-4">{formatDate(item.created_at)}</td>
                     <td className="px-4 text-xs">
                       {item.actor_id || "System"}
@@ -644,13 +654,9 @@ export function SettingsPage() {
         </section>
         <section className="rounded-2xl border bg-white p-6">
           <h3 className="font-black">Interface preferences</h3>
-          <label className="mt-4 flex gap-3 text-sm">
-            <input type="checkbox" />
-            Receive in-app approval reminders
-          </label>
-          <p className="mt-3 text-xs text-slate-500">
-            Preference persistence will be connected when a supported settings
-            table is added.
+          <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+            Interface preferences are coming soon. No settings are shown as
+            saved until persistence is supported.
           </p>
         </section>
       </div>

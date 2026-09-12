@@ -9,13 +9,15 @@ import { Link } from "react-router-dom";
 
 function HeroSection() {
   return (
-    <section className="relative border-b border-slate-200 bg-slate-50">
+    <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50">
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-1 bg-emerald-700"
       />
+      <div aria-hidden="true" className="ph-float absolute -left-32 top-20 size-80 rounded-full bg-emerald-200/25 blur-3xl" />
+      <div aria-hidden="true" className="absolute -right-32 bottom-0 size-96 rounded-full bg-yellow-200/20 blur-3xl" />
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-24">
-        <div>
+        <div className="ph-page-enter relative">
           <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-800">
             PHINMA Education Learning Platform
           </p>
@@ -29,13 +31,13 @@ function HeroSection() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 font-bold text-white shadow-sm transition hover:bg-emerald-800"
+              className="ph-action inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 font-bold text-white shadow-lg shadow-emerald-900/15 hover:bg-emerald-800"
               to="/courses"
             >
               Explore Courses <ArrowRight aria-hidden="true" size={18} />
             </Link>
             <Link
-              className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-800 shadow-sm transition hover:border-emerald-600 hover:text-emerald-800"
+              className="ph-action inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-800 shadow-sm hover:border-emerald-600 hover:text-emerald-800"
               to="/choose-role"
             >
               Get Started
@@ -52,14 +54,14 @@ function HeroSection() {
         </div>
 
         <div
-          className="relative mx-auto w-full max-w-xl"
+          className="ph-card-enter ph-float relative mx-auto w-full max-w-xl [--ph-delay:160ms]"
           aria-label="PhinmaHub learning dashboard preview"
         >
           <div
             aria-hidden="true"
             className="absolute -right-3 -top-3 size-20 rounded-2xl bg-yellow-300/70"
           />
-          <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10">
+          <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
@@ -92,7 +94,7 @@ function HeroSection() {
                   <span>68%</span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full w-[68%] rounded-full bg-emerald-600" />
+                  <div className="ph-progress-fill h-full w-[68%] rounded-full bg-emerald-600" />
                 </div>
                 <div className="mt-5 rounded-xl bg-slate-950 p-4 font-mono text-xs leading-5 text-slate-300">
                   <p>

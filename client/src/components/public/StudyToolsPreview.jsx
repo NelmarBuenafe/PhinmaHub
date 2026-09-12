@@ -49,7 +49,7 @@ function StudyToolsPreview() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 shadow-xl shadow-slate-900/15">
+        <div className="ph-card-enter overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 shadow-2xl shadow-slate-900/20 [--ph-delay:100ms]">
           <div className="flex items-center justify-between border-b border-slate-700 px-5 py-4">
             <div className="flex gap-2" aria-hidden="true">
               <span className="size-3 rounded-full bg-red-400" />
@@ -68,7 +68,7 @@ function StudyToolsPreview() {
             {Object.keys(examples).map((name) => (
               <button
                 aria-selected={language === name}
-                className={`rounded-lg px-3 py-2 text-xs font-bold ${language === name ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
+                className={`ph-action rounded-lg px-3 py-2 text-xs font-bold ${language === name ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
                 key={name}
                 onClick={() => setLanguage(name)}
                 role="tab"
@@ -93,7 +93,7 @@ function StudyToolsPreview() {
           <div className="flex flex-wrap gap-3 border-t border-slate-800 bg-slate-900 px-5 py-4">
             {["Lessons", "References", "Practice"].map((label) => (
               <Link
-                className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-bold text-slate-200 hover:border-emerald-500 hover:text-emerald-300"
+                className="ph-action rounded-lg border border-slate-700 px-3 py-2 text-xs font-bold text-slate-200 hover:border-emerald-500 hover:text-emerald-300"
                 key={label}
                 to="/courses"
               >

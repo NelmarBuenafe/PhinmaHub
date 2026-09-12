@@ -33,9 +33,33 @@ const submissionSchema = z.object({
   submit: z.boolean().optional().default(false),
 }).strict();
 const gradeSchema = z.object({
-  score: z.coerce.number().min(0).max(100000),
+  score: z.coerce.number(),
   feedback: z.string().trim().max(12000).optional().default(""),
 }).strict();
+
+export function validateGradeScore(score, totalPoints) {
+  const numericScore = Number(score);
+  const maximum = Number(totalPoints);
+
+  if (!Number.isFinite(numericScore) || !Number.isFinite(maximum)) {
+    return { valid: false, message: "Score must be a valid number." };
+  }
+  if (numericScore < 0 || numericScore > maximum) {
+    return {
+      valid: false,
+      message: `Score must be between 0 and ${maximum}.`,
+    };
+  }
+  return { valid: true, score: numericScore };
+}
+
+export function courseAllowsStudentMutation(course) {
+  return course?.status !== "archived";
+}
+
+export function canEditSubmission(status) {
+  return status !== "graded";
+}
 
 function sendValidationError(response, parsed) {
   return response.status(400).json({
@@ -103,7 +127,7 @@ async function getOwnedModule(moduleId, teacherId) {
 async function getOwnedAssignment(assignmentId, teacherId) {
   const { data: assignment, error } = await supabase
     .from("assignments")
-    .select("id,course_id,title")
+    .select("id,course_id,title,total_points")
     .eq("id", assignmentId)
     .maybeSingle();
   if (error) throw error;
@@ -444,6 +468,8 @@ export async function gradeSubmission(request, response, next) {
     if (!submission) return response.status(404).json({ success: false, message: "Submission not found." });
     const owned = await getOwnedAssignment(submission.assignment_id, request.auth.user.id);
     if (!owned.assignment) return response.status(owned.status).json({ success: false, message: owned.error });
+    const grade = validateGradeScore(values.data.score, owned.assignment.total_points);
+    if (!grade.valid) return response.status(400).json({ success: false, message: grade.message });
     const { data, error } = await supabase.from("submissions").update({ status: "graded", score: values.data.score, feedback: values.data.feedback || null, graded_by: request.auth.user.id, graded_at: new Date().toISOString() }).eq("id", submission.id).select("id,status,score,feedback,graded_at").single();
     if (error) throw error;
     return response.json({ success: true, data, message: "Submission graded." });
@@ -529,6 +555,12 @@ export async function completeLesson(request, response, next) {
     if (!lesson?.is_published || !lesson.course_modules?.course_id) return response.status(404).json({ success: false, message: "Published lesson not found." });
     const access = await getStudentCourse(lesson.course_modules.course_id, request.auth.user.id);
     if (!access.course) return response.status(access.status).json({ success: false, message: access.error });
+    if (!courseAllowsStudentMutation(access.course)) {
+      return response.status(409).json({
+        success: false,
+        message: "This archived course is read-only and lesson progress can no longer be changed.",
+      });
+    }
     const { data, error: updateError } = await supabase.from("lesson_progress").upsert({ student_id: request.auth.user.id, lesson_id: lesson.id, is_completed: true, completed_at: new Date().toISOString() }, { onConflict: "student_id,lesson_id" }).select("lesson_id,is_completed,completed_at").single();
     if (updateError) throw updateError;
     return response.json({ success: true, data, message: "Lesson marked complete." });
@@ -561,6 +593,25 @@ export async function saveStudentSubmission(request, response, next) {
     if (!assignment?.is_published) return response.status(404).json({ success: false, message: "Published assignment not found." });
     const access = await getStudentCourse(assignment.course_id, request.auth.user.id);
     if (!access.course) return response.status(access.status).json({ success: false, message: access.error });
+    if (!courseAllowsStudentMutation(access.course)) {
+      return response.status(409).json({
+        success: false,
+        message: "This archived course is read-only and submissions can no longer be changed.",
+      });
+    }
+    const { data: existing, error: existingError } = await supabase
+      .from("submissions")
+      .select("id,status")
+      .eq("assignment_id", assignment.id)
+      .eq("student_id", request.auth.user.id)
+      .maybeSingle();
+    if (existingError) throw existingError;
+    if (!canEditSubmission(existing?.status)) {
+      return response.status(409).json({
+        success: false,
+        message: "This assignment has already been graded and can no longer be edited.",
+      });
+    }
     const isLate = Boolean(values.data.submit && assignment.due_at && new Date(assignment.due_at) < new Date());
     if (isLate && !assignment.allow_late_submissions) return response.status(400).json({ success: false, message: "The due date has passed and late submissions are not allowed." });
     const status = values.data.submit ? (isLate ? "late" : "submitted") : "draft";

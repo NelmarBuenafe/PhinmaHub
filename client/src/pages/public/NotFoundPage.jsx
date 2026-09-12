@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/authContext.js";
+import { getProfileDestination } from "../../utils/auth.js";
 
 function NotFoundPage() {
+  const { profile } = useAuth();
+  const destination = profile ? getProfileDestination(profile) : "/";
+  const destinationLabel = profile ? "Return to my workspace" : "Return home";
+
   return (
     <main className="grid min-h-screen place-items-center px-6 text-center">
       <div>
@@ -13,12 +19,22 @@ function NotFoundPage() {
         <p className="mt-3 text-slate-600">
           The page you requested does not exist.
         </p>
-        <Link
-          className="mt-6 inline-block font-semibold text-emerald-700 hover:text-emerald-800"
-          to="/"
-        >
-          Return home
-        </Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            className="rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white hover:bg-emerald-800"
+            to={destination}
+          >
+            {destinationLabel}
+          </Link>
+          {profile && destination !== "/" && (
+            <Link
+              className="rounded-xl border border-slate-300 px-5 py-3 font-bold text-slate-700 hover:bg-slate-50"
+              to="/"
+            >
+              Public home
+            </Link>
+          )}
+        </div>
       </div>
     </main>
   );

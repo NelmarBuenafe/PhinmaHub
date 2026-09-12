@@ -53,6 +53,10 @@ export function buildStudentEnrollmentRecord(courseId, studentId, enrolledAt) {
   };
 }
 
+export function canStudentJoinCourse(course) {
+  return course?.status === "published";
+}
+
 export function generateJoinCode() {
   return randomBytes(6).toString("hex").toUpperCase();
 }
@@ -314,11 +318,18 @@ export async function joinStudentCourse(request, response, next) {
       .eq("join_code", joinCode)
       .maybeSingle();
     if (courseError) throw courseError;
-    if (!course || course.status === "archived") {
+    if (!course) {
       return response.status(404).json({
         success: false,
         code: "INVALID_JOIN_CODE",
         message: "Invalid course join code.",
+      });
+    }
+    if (!canStudentJoinCourse(course)) {
+      return response.status(409).json({
+        success: false,
+        code: "COURSE_NOT_OPEN",
+        message: "This course is not currently open for enrollment.",
       });
     }
 

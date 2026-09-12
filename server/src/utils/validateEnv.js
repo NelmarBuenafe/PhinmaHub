@@ -7,9 +7,10 @@ const REQUIRED_ENVIRONMENT_VARIABLES = [
 
 export function validateEnv(
   requiredVariables = REQUIRED_ENVIRONMENT_VARIABLES,
+  environment = process.env,
 ) {
   const missingVariables = requiredVariables.filter(
-    (name) => !process.env[name]?.trim(),
+    (name) => !environment[name]?.trim(),
   );
 
   if (missingVariables.length > 0) {
@@ -20,11 +21,35 @@ export function validateEnv(
 
   if (
     requiredVariables === REQUIRED_ENVIRONMENT_VARIABLES &&
-    !process.env.PHINMA_ALLOWED_EMAIL_DOMAINS?.trim() &&
-    !process.env.ALLOWED_GOOGLE_DOMAIN?.trim()
+    !environment.PHINMA_ALLOWED_EMAIL_DOMAINS?.trim() &&
+    !environment.ALLOWED_GOOGLE_DOMAIN?.trim()
   ) {
     throw new Error(
       "Missing required environment variable: PHINMA_ALLOWED_EMAIL_DOMAINS",
     );
+  }
+
+  if (environment.NODE_ENV === "production") {
+    let clientUrl;
+    try {
+      clientUrl = new URL(environment.CLIENT_URL);
+    } catch {
+      throw new Error("CLIENT_URL must be a valid HTTPS frontend origin.");
+    }
+
+    const normalizedClientUrl = environment.CLIENT_URL.trim().replace(/\/$/, "");
+    if (
+      clientUrl.protocol !== "https:" ||
+      ["localhost", "127.0.0.1", "::1"].includes(clientUrl.hostname) ||
+      clientUrl.origin !== normalizedClientUrl
+    ) {
+      throw new Error(
+        "CLIENT_URL must be the exact deployed HTTPS frontend origin.",
+      );
+    }
+
+    if (environment.CAPTCHA_SECRET.trim().length < 32) {
+      throw new Error("CAPTCHA_SECRET must contain at least 32 characters.");
+    }
   }
 }

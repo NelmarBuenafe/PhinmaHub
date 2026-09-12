@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import CourseContentSidebar from "../../components/student/CourseContentSidebar.jsx";
 import CourseLearningHeader from "../../components/student/CourseLearningHeader.jsx";
 import LessonViewer from "../../components/student/LessonViewer.jsx";
 import StudentNav from "../../components/student/StudentNav.jsx";
 import Loading from "../../components/common/Loading.jsx";
+import StatusBadge from "../../components/common/StatusBadge.jsx";
 import api from "../../services/api.js";
+import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
 
 const tabs = ["Course Content", "Assignments"];
 
-function AssignmentPanel({ assignments, onSaveSubmission }) {
+function AssignmentPanel({ assignments, onSaveSubmission, readOnly }) {
   if (!assignments.length) {
     return (
       <p className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600">
@@ -27,6 +29,12 @@ function AssignmentPanel({ assignments, onSaveSubmission }) {
           key={assignment.id}
         >
           <h2 className="text-xl font-black text-slate-950">{assignment.title}</h2>
+          <div className="mt-2">
+            <StatusBadge
+              label={assignment.submission?.status || "Not started"}
+              value={assignment.submission?.status || "pending"}
+            />
+          </div>
           <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-700">
             {assignment.instructions || "No instructions have been added yet."}
           </p>
@@ -37,7 +45,14 @@ function AssignmentPanel({ assignments, onSaveSubmission }) {
           </p>
           {assignment.submission?.status === "graded" && (
             <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
-              Graded: {assignment.submission.score} — {assignment.submission.feedback || "No feedback."}
+              ✓ Graded · Score: {assignment.submission.score} / {assignment.total_points}
+              <br />
+              Teacher Feedback: {assignment.submission.feedback || "No feedback."}
+            </p>
+          )}
+          {readOnly && assignment.submission?.status !== "graded" && (
+            <p className="mt-4 rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
+              This archived course is read-only. Submission changes are disabled.
             </p>
           )}
           <form
@@ -50,12 +65,14 @@ function AssignmentPanel({ assignments, onSaveSubmission }) {
             <textarea
               className="mt-2 w-full rounded-xl border border-slate-300 p-3 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200"
               defaultValue={assignment.submission?.written_answer || ""}
+              disabled={readOnly || assignment.submission?.status === "graded"}
               id={`answer-${assignment.id}`}
               name="answer"
               placeholder="Write your answer here"
               rows="6"
             />
-            <div className="mt-3 flex flex-wrap gap-3">
+            {!readOnly && assignment.submission?.status !== "graded" && (
+              <div className="mt-3 flex flex-wrap gap-3">
               <button
                 className="rounded-xl border border-emerald-700 px-4 py-2 font-bold text-emerald-800 hover:bg-emerald-50"
                 type="submit"
@@ -70,7 +87,8 @@ function AssignmentPanel({ assignments, onSaveSubmission }) {
               >
                 Submit Assignment
               </button>
-            </div>
+              </div>
+            )}
           </form>
         </article>
       ))}
@@ -110,9 +128,7 @@ export default function StudentCoursePage() {
     }
   }, [courseId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useDeferredLoad(load);
 
   const lessons = useMemo(
     () => learning?.modules.flatMap((module) => module.lessons) || [],
@@ -129,6 +145,7 @@ export default function StudentCoursePage() {
   ).length;
 
   async function completeLesson(lessonId) {
+    if (learning?.course.status === "archived") return;
     if (completingLessonIds.has(lessonId)) return;
 
     setCompletingLessonIds((current) => new Set(current).add(lessonId));
@@ -224,8 +241,17 @@ export default function StudentCoursePage() {
             lessonCount={lessons.length}
           />
         </div>
+        {learning.course.status === "archived" && (
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+            This course is archived. Historical lessons, submissions, grades, and feedback remain available in read-only mode.
+          </p>
+        )}
 
-        <div className="mt-7 flex gap-2 border-b border-slate-200">
+        <div
+          aria-label="Course sections"
+          className="mt-7 flex gap-2 overflow-x-auto border-b border-slate-200"
+          role="tablist"
+        >
           {tabs.map((tab) => (
             <button
               className={`rounded-t-xl px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
@@ -235,6 +261,8 @@ export default function StudentCoursePage() {
               }`}
               key={tab}
               onClick={() => setActiveTab(tab)}
+              role="tab"
+              aria-selected={activeTab === tab}
               type="button"
             >
               {tab}
@@ -269,6 +297,7 @@ export default function StudentCoursePage() {
               onNext={() => setSelectedLessonId(lessons[selectedIndex + 1].id)}
               onMaterialError={setError}
               onPrevious={() => setSelectedLessonId(lessons[selectedIndex - 1].id)}
+              readOnly={learning.course.status === "archived"}
             />
           </div>
         ) : (
@@ -276,6 +305,7 @@ export default function StudentCoursePage() {
             <AssignmentPanel
               assignments={assignments}
               onSaveSubmission={saveSubmission}
+              readOnly={learning.course.status === "archived"}
             />
           </div>
         )}

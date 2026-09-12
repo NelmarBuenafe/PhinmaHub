@@ -1,8 +1,24 @@
 import axios from "axios";
 import { supabase } from "./supabase.js";
 
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+const apiBaseUrl =
+  configuredApiUrl ||
+  (import.meta.env.DEV ? "http://localhost:5000/api" : "");
+
+if (!apiBaseUrl) {
+  throw new Error("VITE_API_URL must be configured for production.");
+}
+
+if (
+  import.meta.env.PROD &&
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(?:\/|$)/i.test(apiBaseUrl)
+) {
+  throw new Error("VITE_API_URL cannot target localhost in production.");
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: apiBaseUrl,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });

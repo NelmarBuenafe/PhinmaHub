@@ -6,11 +6,13 @@ import {
   GraduationCap,
   Megaphone,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
 import StudentNav from "../../components/student/StudentNav.jsx";
 import api from "../../services/api.js";
+import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
 
 const summaryCards = [
   { key: "enrolledCourses", label: "Enrolled Courses", Icon: BookOpen },
@@ -21,9 +23,16 @@ const summaryCards = [
 
 function ProgressBar({ value }) {
   return (
-    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+    <div
+      aria-label={`${value}% complete`}
+      aria-valuemax="100"
+      aria-valuemin="0"
+      aria-valuenow={value}
+      className="h-2.5 overflow-hidden rounded-full bg-slate-100"
+      role="progressbar"
+    >
       <div
-        className="h-full rounded-full bg-emerald-600 transition-all"
+        className="ph-progress-fill h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500"
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>
@@ -62,9 +71,7 @@ export default function StudentDashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+  useDeferredLoad(loadDashboard);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -89,40 +96,39 @@ export default function StudentDashboardPage() {
         )}
         {dashboard && (
           <>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
-                  Student Dashboard
-                </p>
-                <h1 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
-                  Welcome back, {dashboard.student.firstName}
-                </h1>
-                <p className="mt-2 text-slate-600">
-                  Continue your learning and keep track of your progress.
-                </p>
-              </div>
-              <Link
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800"
-                to="/student/courses"
-              >
-                View my courses <ArrowRight size={17} />
-              </Link>
-              <Link
-                className="inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-3 font-bold text-emerald-800 hover:bg-emerald-50"
-                to="/student/join-course"
-              >
-                Join a course
-              </Link>
-            </div>
+            <PageHeader
+              action={
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    className="ph-action inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white shadow-sm hover:bg-emerald-800"
+                    to="/student/courses"
+                  >
+                    View my courses <ArrowRight aria-hidden="true" size={17} />
+                  </Link>
+                  <Link
+                    className="ph-action inline-flex items-center rounded-xl border border-emerald-700 px-4 py-3 font-bold text-emerald-800 hover:bg-emerald-50"
+                    to="/student/join-course"
+                  >
+                    Join a course
+                  </Link>
+                </div>
+              }
+              description="Continue learning and keep track of your progress."
+              eyebrow="Student workspace"
+              title={`Welcome back, ${dashboard.student.firstName}`}
+            />
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {summaryCards.map(({ key, label, Icon, suffix }) => (
+              {summaryCards.map(({ key, label, Icon, suffix }, index) => (
                 <article
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="ph-card-enter ph-surface rounded-2xl p-5"
                   key={key}
+                  style={{ "--ph-delay": `${80 + index * 45}ms` }}
                 >
-                  <Icon className="text-emerald-700" size={22} />
-                  <p className="mt-5 text-3xl font-black text-slate-950">
+                  <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <Icon aria-hidden="true" size={21} />
+                  </span>
+                  <p className="mt-4 text-3xl font-black text-slate-950">
                     {dashboard.summary[key]}
                     {suffix}
                   </p>
@@ -134,7 +140,7 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="ph-surface-soft ph-card-enter rounded-2xl p-6 [--ph-delay:220ms]">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-black text-slate-950">
                     Continue Learning
@@ -162,7 +168,7 @@ export default function StudentDashboardPage() {
                       </span>
                     </div>
                     <Link
-                      className="mt-6 inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-2.5 font-bold text-emerald-800 hover:bg-emerald-50"
+                      className="ph-action mt-6 inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-2.5 font-bold text-emerald-800 hover:bg-emerald-50"
                       to={`/student/courses/${dashboard.continueLearning.id}`}
                     >
                       Continue learning <ArrowRight size={16} />
@@ -175,7 +181,7 @@ export default function StudentDashboardPage() {
                 )}
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="ph-surface ph-card-enter rounded-2xl p-6 [--ph-delay:260ms]">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-black text-slate-950">
                     Upcoming Assignments
@@ -186,7 +192,7 @@ export default function StudentDashboardPage() {
                   <div className="mt-4 divide-y divide-slate-100">
                     {dashboard.upcomingAssignments.map((assignment) => (
                       <Link
-                        className="block py-4 first:pt-0 last:pb-0 hover:bg-slate-50"
+                        className="ph-action -mx-2 block rounded-xl px-2 py-4 first:pt-0 last:pb-0 hover:bg-slate-50"
                         key={assignment.id}
                         to={`/student/courses/${assignment.course_id}?tab=Assignments#assignment-${assignment.id}`}
                       >
@@ -224,7 +230,7 @@ export default function StudentDashboardPage() {
                 {dashboard.courses.length ? (
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {dashboard.courses.slice(0, 4).map((course) => (
-                      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={course.id}>
+                      <article className="ph-interactive-card rounded-2xl p-5" key={course.id}>
                         <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">{course.course_code}</p>
                         <h3 className="mt-2 text-lg font-black text-slate-950">{course.title}</h3>
                         <p className="mt-2 text-sm text-slate-600">Instructor: {course.teacher_name}</p>
@@ -247,7 +253,7 @@ export default function StudentDashboardPage() {
                 )}
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="ph-surface rounded-2xl p-6">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-black text-slate-950">Recent Announcements</h2>
                   <Megaphone className="text-emerald-700" size={22} />

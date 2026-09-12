@@ -160,7 +160,7 @@ function RoleAuthPage() {
       setError(
         getFriendlyAuthError(
           requestError,
-          requestError.message || "Login could not be completed.",
+          "Login could not be completed. Please try again.",
         ),
       );
     } finally {
@@ -245,7 +245,7 @@ function RoleAuthPage() {
           requestError,
           requestError.code === "EMAIL_ALREADY_REGISTERED"
             ? requestError.message
-            : requestError.message || "Registration could not be completed.",
+            : "Registration could not be completed. Please try again.",
         ),
       );
     } finally {
@@ -296,7 +296,7 @@ function RoleAuthPage() {
       )}
 
       {success && (
-        <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+        <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800" role="status">
           {success}
         </p>
       )}
@@ -343,12 +343,9 @@ function RoleAuthPage() {
               />{" "}
               Remember me
             </label>
-            <a
-              className="font-bold text-emerald-700 hover:text-emerald-900"
-              href="mailto:support@example.edu?subject=Password reset request"
-            >
-              Forgot password?
-            </a>
+            <span className="font-bold text-slate-500" title="Password recovery will be available in a future release">
+              Forgot password? (Coming soon)
+            </span>
           </div>
           <MathCaptcha disabled={loading} ref={captchaRef} />
           <button
@@ -386,7 +383,17 @@ function RoleAuthPage() {
               onChange={updateValue}
               type="checkbox"
             />
-            <span>I agree to the Terms of Use and Privacy Policy.</span>
+            <span>
+              I agree to the{" "}
+              <Link className="font-bold text-emerald-800 underline" to="/terms-of-use">
+                Terms of Use
+              </Link>{" "}
+              and{" "}
+              <Link className="font-bold text-emerald-800 underline" to="/privacy-policy">
+                Privacy Policy
+              </Link>
+              .
+            </span>
           </label>
           {errors.terms && (
             <p className="text-xs font-semibold text-red-700">{errors.terms}</p>

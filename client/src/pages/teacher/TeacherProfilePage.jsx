@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import ProfileDetails from "../../components/common/ProfileDetails.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
+import TeacherNav from "../../components/teacher/TeacherNav.jsx";
 import api from "../../services/api.js";
 import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
 
@@ -10,29 +10,28 @@ const sections = [
   {
     title: "Personal Information",
     fields: [
-      ["Student Name", (profile) => [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(" ")],
+      ["Name", (profile) => [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(" ")],
       ["PHINMA Email", (profile) => profile.email],
     ],
   },
   {
-    title: "Academic Information",
+    title: "Faculty Information",
     fields: [
-      ["Student ID", (_profile, details) => details?.student_id],
+      ["Employee ID", (_profile, details) => details?.employee_id],
       ["Campus", (_profile, details) => details?.campus],
-      ["Program", (_profile, details) => details?.program],
-      ["Year Level", (_profile, details) => details?.year_level],
-      ["Section", (_profile, details) => details?.section],
+      ["Department", (_profile, details) => details?.department],
+      ["Position", (_profile, details) => details?.position],
     ],
   },
 ];
 
-export default function StudentProfilePage() {
+export default function TeacherProfilePage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
   const loadProfile = useCallback(async () => {
     try {
-      const response = await api.get("/student/profile");
+      const response = await api.get("/teacher/profile");
       setData(response.data.data);
       setError("");
     } catch (requestError) {
@@ -49,14 +48,18 @@ export default function StudentProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <StudentNav />
+      <TeacherNav />
       <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <PageHeader
-          description="Review the personal and academic information associated with your account."
-          eyebrow="Student workspace"
+          description="Review the personal and faculty information associated with your account."
+          eyebrow="Teacher workspace"
           title="My Profile"
         />
-        {!data && !error && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading your profile..." /></div>}
+        {!data && !error && (
+          <div className="mt-8 rounded-2xl border bg-white p-8">
+            <Loading label="Loading your profile..." />
+          </div>
+        )}
         {error && (
           <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
             <p>{error}</p>
@@ -67,7 +70,7 @@ export default function StudentProfilePage() {
         )}
         {data && (
           <ProfileDetails
-            details={data.studentProfile}
+            details={data.teacherProfile}
             profile={data.profile}
             sections={sections}
           />

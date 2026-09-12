@@ -52,9 +52,7 @@ function PublicFooter() {
           <h2 className="font-black text-white">Contact</h2>
           <address className="mt-4 space-y-2 text-sm not-italic text-slate-400">
             <p>PHINMA campus support office</p>
-            <p>Email: support@example.edu</p>
-            <p>Phone: (000) 000-0000</p>
-            <p className="text-xs">Contact details are placeholders.</p>
+            <p>Contact details will be published after institutional confirmation.</p>
           </address>
         </div>
       </div>
@@ -62,8 +60,12 @@ function PublicFooter() {
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-5 py-5 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
           <p>© {year} PhinmaHub. All rights reserved.</p>
           <div className="flex gap-5">
-            <span>Privacy Policy</span>
-            <span>Terms of Use</span>
+            <Link className="hover:text-emerald-300" to="/privacy-policy">
+              Privacy Policy
+            </Link>
+            <Link className="hover:text-emerald-300" to="/terms-of-use">
+              Terms of Use
+            </Link>
           </div>
         </div>
       </div>

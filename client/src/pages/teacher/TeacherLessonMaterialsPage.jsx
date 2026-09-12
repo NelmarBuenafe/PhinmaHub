@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
 import LessonMaterialsManager from "../../components/teacher/LessonMaterialsManager.jsx";
 import TeacherNav from "../../components/teacher/TeacherNav.jsx";
 import api from "../../services/api.js";
+import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
 
 function lessonDraft(lesson) {
   return {
@@ -23,19 +25,21 @@ export default function TeacherLessonMaterialsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const selectedLessonIdRef = useRef(null);
 
-  async function loadLessons() {
+  const loadLessons = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/teacher/courses/${courseId}/modules`);
       const nextModules = response.data.data || [];
       setModules(nextModules);
 
-      const currentId = selectedLesson?.id;
+      const currentId = selectedLessonIdRef.current;
       const availableLessons = nextModules.flatMap((module) => module.lessons);
       const nextLesson = availableLessons.find((lesson) => lesson.id === currentId)
         || availableLessons[0]
         || null;
+      selectedLessonIdRef.current = nextLesson?.id || null;
       setSelectedLesson(nextLesson);
       setDraft(nextLesson ? lessonDraft(nextLesson) : null);
       setError("");
@@ -47,13 +51,12 @@ export default function TeacherLessonMaterialsPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadLessons();
   }, [courseId]);
 
+  useDeferredLoad(loadLessons);
+
   function selectLesson(lesson) {
+    selectedLessonIdRef.current = lesson.id;
     setSelectedLesson(lesson);
     setDraft(lessonDraft(lesson));
     setNotice("");
@@ -77,6 +80,7 @@ export default function TeacherLessonMaterialsPage() {
         draft,
       );
       const updated = response.data.data;
+      selectedLessonIdRef.current = updated.id;
       setModules((currentModules) =>
         currentModules.map((module) => ({
           ...module,
@@ -108,16 +112,11 @@ export default function TeacherLessonMaterialsPage() {
           ← Back to Manage Course
         </Link>
         <div className="mt-4">
-          <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
-            Teacher workspace
-          </p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">
-            Lesson Materials
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Select a lesson, update its learning content, then attach resources
-            for enrolled students.
-          </p>
+          <PageHeader
+            description="Select a lesson, update its learning content, then attach resources for enrolled Students."
+            eyebrow="Teacher workspace"
+            title="Lesson Materials"
+          />
         </div>
 
         {loading && (
@@ -146,7 +145,7 @@ export default function TeacherLessonMaterialsPage() {
 
         {!loading && !error && modules.length > 0 && (
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.5fr)]">
-            <aside className="rounded-2xl border border-slate-200 bg-white p-4">
+            <aside className="max-h-80 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 lg:max-h-[calc(100vh-8rem)]">
               <h2 className="font-black text-slate-950">Course lessons</h2>
               <div className="mt-4 space-y-4">
                 {modules.map((module) => (

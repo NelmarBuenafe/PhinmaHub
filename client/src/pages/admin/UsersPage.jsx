@@ -1,5 +1,5 @@
 import { UserPlus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import StudentRegistrationForm from "../../components/auth/StudentRegistrationForm.jsx";
 import TeacherRegistrationForm from "../../components/auth/TeacherRegistrationForm.jsx";
 import {
@@ -33,11 +33,52 @@ const emptyInvitation = {
 };
 
 function InvitationDialog({ onClose, onInvited, open }) {
+  const dialogRef = useRef(null);
+  const previousFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const sendingRef = useRef(false);
+  const titleId = useId();
   const [role, setRole] = useState("student");
   const [values, setValues] = useState(emptyInvitation);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    sendingRef.current = sending;
+  }, [onClose, sending]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    previousFocusRef.current = document.activeElement;
+    const dialog = dialogRef.current;
+    dialog?.querySelector("select")?.focus();
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape" && !sendingRef.current) onCloseRef.current();
+      if (event.key !== "Tab") return;
+      const controls = dialog?.querySelectorAll(
+        "button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]",
+      );
+      if (!controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocusRef.current?.focus();
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -109,13 +150,15 @@ function InvitationDialog({ onClose, onInvited, open }) {
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-slate-950/60 p-4">
       <section
+        aria-labelledby={titleId}
         aria-modal="true"
-        className="mx-auto my-6 w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"
+        className="mx-auto my-6 max-h-[calc(100vh-3rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        ref={dialogRef}
         role="dialog"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-black">Invite a school user</h2>
+            <h2 className="text-xl font-black" id={titleId}>Invite a school user</h2>
             <p className="mt-1 text-sm text-slate-600">
               The user will receive a secure link to create their password.
             </p>
@@ -303,7 +346,12 @@ function UsersPage({ presetRole = "" }) {
         <ErrorState onRetry={list.load} />
       ) : list.data.length ? (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+          <div
+            aria-label="User management table"
+            className="overflow-x-auto rounded-2xl border bg-white shadow-sm"
+            role="region"
+            tabIndex="0"
+          >
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
@@ -324,7 +372,7 @@ function UsersPage({ presetRole = "" }) {
               </thead>
               <tbody>
                 {list.data.map((user) => (
-                  <tr className="border-t" key={user.id}>
+                  <tr className="ph-table-row border-t" key={user.id}>
                     <td className="px-4 py-4 font-bold">{fullName(user)}</td>
                     <td className="px-4">{user.email}</td>
                     <td className="px-4">

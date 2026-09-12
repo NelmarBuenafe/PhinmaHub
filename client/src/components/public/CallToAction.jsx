@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 function CallToAction() {
   return (
-    <section className="bg-emerald-700 py-16 text-white">
+    <section className="relative overflow-hidden bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 py-16 text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 px-5 text-center sm:px-6 lg:flex-row lg:px-8 lg:text-left">
         <div>
           <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-yellow-300">
@@ -19,13 +19,13 @@ function CallToAction() {
         </div>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Link
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 font-bold text-emerald-800 shadow-sm hover:bg-emerald-50"
+            className="ph-action inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 font-bold text-emerald-800 shadow-sm hover:bg-emerald-50"
             to="/choose-role"
           >
             Get Started <ArrowRight aria-hidden="true" size={18} />
           </Link>
           <Link
-            className="inline-flex items-center justify-center rounded-xl border border-emerald-300 px-5 py-3.5 font-bold text-white hover:bg-emerald-800"
+            className="ph-action inline-flex items-center justify-center rounded-xl border border-emerald-300 px-5 py-3.5 font-bold text-white hover:bg-emerald-800"
             to="/courses"
           >
             Browse Courses

@@ -8,7 +8,8 @@ function CourseCard({ course }) {
   const teacher = course.teacher_name || course.teacher || "Faculty instructor";
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none">
+    <article className="ph-interactive-card group relative flex h-full flex-col overflow-hidden rounded-2xl p-5">
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-emerald-600 transition-transform duration-300 group-hover:scale-x-100 group-focus-within:scale-x-100" />
       <div
         className={`grid size-12 place-items-center rounded-xl ${visual}`}
       >
@@ -33,7 +34,7 @@ function CourseCard({ course }) {
         <span>{teacher}</span>
       </div>
       <Link
-        className="mt-5 inline-flex items-center gap-2 font-bold text-emerald-700 hover:text-emerald-900"
+        className="ph-action mt-5 inline-flex items-center gap-2 font-bold text-emerald-700 hover:text-emerald-900"
         to="/courses"
       >
         View Course{" "}

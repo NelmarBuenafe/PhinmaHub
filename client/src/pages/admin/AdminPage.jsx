@@ -29,7 +29,7 @@ function greeting() {
 function StatCard({ accent = false, icon: Icon, label, title, value }) {
   return (
     <article
-      className={`rounded-2xl border bg-white p-5 shadow-sm ${accent ? "border-yellow-300" : ""}`}
+      className={`ph-card-enter ph-surface rounded-2xl p-5 ${accent ? "border-yellow-300 bg-gradient-to-br from-white to-yellow-50/70" : ""}`}
     >
       <div className="flex items-center justify-between">
         <span
@@ -73,7 +73,7 @@ function AdminPage() {
       <PageHeader
         action={
           <Link
-            className="rounded-xl bg-emerald-700 px-5 py-3 font-black text-white hover:bg-emerald-800"
+            className="ph-action rounded-xl bg-emerald-700 px-5 py-3 font-black text-white shadow-sm hover:bg-emerald-800"
             to="/admin/users"
           >
             Invite Student or Teacher
@@ -114,7 +114,7 @@ function AdminPage() {
             />
           </section>
           <div className="mt-7 grid gap-7 xl:grid-cols-[1.35fr_.65fr]">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="ph-surface rounded-2xl p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-black">Recent registrations</h2>
                 <Link
@@ -140,7 +140,7 @@ function AdminPage() {
                     <tbody>
                       {data.applications.map((application) => (
                         <tr
-                          className="border-b border-slate-100"
+                          className="ph-table-row border-b border-slate-100"
                           key={application.id}
                         >
                           <td className="py-4 font-bold">
@@ -172,7 +172,7 @@ function AdminPage() {
               )}
             </section>
             <aside className="space-y-7">
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <section className="ph-surface rounded-2xl p-5">
                 <h2 className="text-lg font-black">Course overview</h2>
                 {Object.entries(data.courseStatus).map(([status, count]) => (
                   <div className="mt-4" key={status}>
@@ -191,7 +191,7 @@ function AdminPage() {
                   </div>
                 ))}
               </section>
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <section className="ph-surface rounded-2xl p-5">
                 <h2 className="text-lg font-black">Quick actions</h2>
                 <div className="mt-4 grid gap-2">
                   {[
@@ -213,7 +213,7 @@ function AdminPage() {
               </section>
             </aside>
           </div>
-          <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="ph-surface mt-7 rounded-2xl p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-black">Latest courses</h2>
               <Link
@@ -238,7 +238,7 @@ function AdminPage() {
                   </thead>
                   <tbody>
                     {data.courses.map((course) => (
-                      <tr className="border-b border-slate-100" key={course.id}>
+                      <tr className="ph-table-row border-b border-slate-100" key={course.id}>
                         <td className="py-4 font-bold">{course.course_code}</td>
                         <td>{course.title}</td>
                         <td>{course.teacher_name || "Unknown teacher"}</td>
@@ -265,7 +265,7 @@ function AdminPage() {
               </div>
             )}
           </section>
-          <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="ph-surface mt-7 rounded-2xl p-5">
             <h2 className="text-lg font-black">Recent activity</h2>
             {data.activity.length ? (
               <ul className="mt-4 divide-y divide-slate-100">

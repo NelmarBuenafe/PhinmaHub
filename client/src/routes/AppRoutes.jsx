@@ -47,6 +47,7 @@ const LandingPage = lazy(() => import("../pages/public/LandingPage.jsx"));
 const ChooseRolePage = lazy(() => import("../pages/public/ChooseRolePage.jsx"));
 const CoursesPage = lazy(() => import("../pages/public/CoursesPage.jsx"));
 const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage.jsx"));
+const PolicyPage = lazy(() => import("../pages/public/PolicyPage.jsx"));
 const OAuthCallbackPage = lazy(
   () => import("../pages/public/OAuthCallbackPage.jsx"),
 );
@@ -98,6 +99,9 @@ const TeacherCourseOverviewPage = lazy(
 const TeacherLessonMaterialsPage = lazy(
   () => import("../pages/teacher/TeacherLessonMaterialsPage.jsx"),
 );
+const TeacherProfilePage = lazy(
+  () => import("../pages/teacher/TeacherProfilePage.jsx"),
+);
 
 function AppRoutes() {
   return (
@@ -112,6 +116,8 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/choose-role" element={<ChooseRolePage />} />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/privacy-policy" element={<PolicyPage />} />
+        <Route path="/terms-of-use" element={<PolicyPage />} />
         <Route path="/login" element={<Navigate to="/choose-role" replace />} />
         <Route path="/auth/:role" element={<RoleAuthPage />} />
         <Route
@@ -188,6 +194,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="teacher">
               <TeacherCourses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/profile"
+          element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherProfilePage />
             </ProtectedRoute>
           }
         />

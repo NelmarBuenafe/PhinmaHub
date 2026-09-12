@@ -41,7 +41,7 @@ function ChooseRolePage() {
             ← Back to Home
           </Link>
         </div>
-        <header className="mx-auto mt-14 max-w-2xl text-center">
+        <header className="ph-page-enter mx-auto mt-14 max-w-2xl text-center">
           <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-800">
             Choose your workspace
           </span>
@@ -56,15 +56,16 @@ function ChooseRolePage() {
           aria-label="Available roles"
           className="mt-12 grid gap-6 md:grid-cols-2"
         >
-          {roles.map((role) => (
-            <RoleCard
-              description={role.description}
-              icon={role.icon}
-              key={role.role}
-              onSelect={() => chooseRole(role.role)}
-              selected={selected === role.role}
-              title={role.name}
-            />
+          {roles.map((role, index) => (
+            <div className="ph-card-enter" key={role.role} style={{ "--ph-delay": `${100 + index * 70}ms` }}>
+              <RoleCard
+                description={role.description}
+                icon={role.icon}
+                onSelect={() => chooseRole(role.role)}
+                selected={selected === role.role}
+                title={role.name}
+              />
+            </div>
           ))}
         </section>
         <p className="mt-8 text-center text-sm text-slate-500">

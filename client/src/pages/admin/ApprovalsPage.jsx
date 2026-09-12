@@ -210,7 +210,7 @@ function ApprovalsPage() {
                 {data.map((a) => {
                   const d = a.role_details || {};
                   return (
-                    <tr className="border-t" key={a.id}>
+                    <tr className="ph-table-row border-t" key={a.id}>
                       <td className="px-4 py-4 font-bold">{fullName(a)}</td>
                       <td className="px-4">{a.email}</td>
                       <td className="px-4">
@@ -264,7 +264,7 @@ function ApprovalsPage() {
           </div>
           <div className="grid gap-4 md:hidden">
             {data.map((a) => (
-              <article className="rounded-2xl border bg-white p-5" key={a.id}>
+              <article className="ph-surface rounded-2xl p-5" key={a.id}>
                 <div className="flex justify-between">
                   <div>
                     <h3 className="font-black">{fullName(a)}</h3>

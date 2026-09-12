@@ -45,7 +45,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
       {open && (
         <button
           aria-label="Close navigation overlay"
-          className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
+          className="ph-dialog-backdrop fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-[2px] lg:hidden"
           onClick={onClose}
           type="button"
         />
@@ -85,7 +85,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
           {links.map(([label, path, Icon, badge, child]) => (
             <NavLink
               className={({ isActive }) =>
-                `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${child ? "ml-7" : ""} ${isActive || (path !== "/admin" && location.pathname.startsWith(`${path}/`)) ? "bg-emerald-600 text-white" : "hover:bg-slate-800 hover:text-white"}`
+                `ph-action group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${child ? "ml-7" : ""} ${isActive || (path !== "/admin" && location.pathname.startsWith(`${path}/`)) ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/30" : "hover:bg-slate-800 hover:text-white"}`
               }
               end={path === "/admin"}
               key={path}
@@ -107,7 +107,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
           ))}
         </nav>
         <div className="border-t border-slate-800 p-4">
-          <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-900 p-3">
+          <div className="mb-3 flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-inner">
             {profile?.avatar_url ? (
               <img
                 alt="Admin profile"

@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   DOCUMENT_ACCEPT,
   MAX_LESSON_MATERIAL_BYTES,
 } from "../../config/lessonMaterials.js";
 import api from "../../services/api.js";
 import { supabase } from "../../services/supabase.js";
+import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { ConfirmationDialog } from "../admin/AdminUI.jsx";
+import Loading from "../common/Loading.jsx";
 
 const initialForm = {
   materialType: "document",
@@ -32,8 +35,9 @@ export default function LessonMaterialsManager({ lessonId }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  async function loadMaterials() {
+  const loadMaterials = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/teacher/lessons/${lessonId}/materials`);
@@ -47,14 +51,16 @@ export default function LessonMaterialsManager({ lessonId }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [lessonId]);
 
-  useEffect(() => {
+  const loadSelectedLesson = useCallback(() => {
     setEditing(null);
     setForm(initialForm);
     setFile(null);
-    loadMaterials();
-  }, [lessonId]);
+    return loadMaterials();
+  }, [loadMaterials]);
+
+  useDeferredLoad(loadSelectedLesson);
 
   function updateForm(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -193,14 +199,15 @@ export default function LessonMaterialsManager({ lessonId }) {
     }
   }
 
-  async function removeMaterial(materialId) {
-    if (!window.confirm("Remove this learning material?")) return;
-
+  async function removeMaterial() {
+    if (!deleteTarget) return;
+    setSaving(true);
     setError("");
     setNotice("");
     try {
-      await api.delete(`/teacher/materials/${materialId}`);
-      if (editing?.id === materialId) setEditing(null);
+      await api.delete(`/teacher/materials/${deleteTarget.id}`);
+      if (editing?.id === deleteTarget.id) setEditing(null);
+      setDeleteTarget(null);
       setNotice("Learning material removed.");
       await loadMaterials();
     } catch (requestError) {
@@ -208,6 +215,8 @@ export default function LessonMaterialsManager({ lessonId }) {
         requestError.response?.data?.message ||
           "Unable to remove learning material.",
       );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -229,7 +238,7 @@ export default function LessonMaterialsManager({ lessonId }) {
         </p>
       )}
 
-      {loading && <p className="mt-4 text-sm text-slate-500">Loading materials…</p>}
+      {loading && <Loading label="Loading materials..." />}
       {!loading && materials.length === 0 && (
         <p className="mt-4 text-sm text-slate-500">No learning materials yet.</p>
       )}
@@ -256,7 +265,7 @@ export default function LessonMaterialsManager({ lessonId }) {
                 </button>
                 <button
                   className="text-sm font-bold text-red-700 hover:underline"
-                  onClick={() => removeMaterial(material.id)}
+                  onClick={() => setDeleteTarget(material)}
                   type="button"
                 >
                   Remove
@@ -404,6 +413,17 @@ export default function LessonMaterialsManager({ lessonId }) {
           {saving ? "Saving…" : "Add Material"}
         </button>
       </form>
+      <ConfirmationDialog
+        confirmLabel="Remove material"
+        destructive
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={removeMaterial}
+        open={Boolean(deleteTarget)}
+        processing={saving}
+        title="Remove learning material?"
+      >
+        Remove <strong>{deleteTarget?.title}</strong> from this lesson? This action cannot be undone.
+      </ConfirmationDialog>
     </section>
   );
 }

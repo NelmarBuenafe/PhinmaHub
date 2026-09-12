@@ -3,6 +3,7 @@ import test from "node:test";
 import "dotenv/config";
 import {
   buildStudentEnrollmentRecord,
+  canStudentJoinCourse,
   joinCourseSchema,
   normalizeJoinCode,
 } from "../src/controllers/courseController.js";
@@ -35,4 +36,10 @@ test("new student enrollment always uses the authenticated student and active st
     status: "active",
     enrolled_at: "2026-09-11T00:00:00.000Z",
   });
+});
+
+test("only published courses allow student joins", () => {
+  assert.equal(canStudentJoinCourse({ status: "published" }), true);
+  assert.equal(canStudentJoinCourse({ status: "draft" }), false);
+  assert.equal(canStudentJoinCourse({ status: "archived" }), false);
 });

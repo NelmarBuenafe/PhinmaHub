@@ -1,13 +1,22 @@
 import { BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
+import StatusBadge from "../../components/common/StatusBadge.jsx";
 import StudentNav from "../../components/student/StudentNav.jsx";
 import { useCourseList } from "../../utils/useCourseList.js";
 
 function ProgressBar({ value }) {
   return (
-    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-      <div className="h-full rounded-full bg-emerald-600" style={{ width: `${value}%` }} />
+    <div
+      aria-label={`${value}% complete`}
+      aria-valuemax="100"
+      aria-valuemin="0"
+      aria-valuenow={value}
+      className="h-2.5 overflow-hidden rounded-full bg-slate-100"
+      role="progressbar"
+    >
+      <div className="ph-progress-fill h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500" style={{ width: `${value}%` }} />
     </div>
   );
 }
@@ -21,16 +30,19 @@ export default function StudentCoursesPage() {
     <main className="min-h-screen bg-slate-50">
       <StudentNav />
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Student workspace</p>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="mt-2 text-3xl font-black text-slate-950">My Courses</h1>
-          <Link
-            className="inline-flex items-center rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white hover:bg-emerald-800"
-            to="/student/join-course"
-          >
-            + Join Course
-          </Link>
-        </div>
+        <PageHeader
+          action={
+            <Link
+              className="ph-action inline-flex items-center rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-sm hover:bg-emerald-800"
+              to="/student/join-course"
+            >
+              + Join Course
+            </Link>
+          }
+          description="Open your active and archived courses in one place."
+          eyebrow="Student workspace"
+          title="My Courses"
+        />
         {successMessage && (
           <p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
             {successMessage}
@@ -63,8 +75,11 @@ export default function StudentCoursesPage() {
               const completed = course.completed_lesson_count || 0;
               const progress = total ? Math.round((completed / total) * 100) : 0;
               return (
-                <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={course.id}>
+                <article className="ph-interactive-card rounded-2xl p-6" key={course.id}>
                   <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">{course.course_code}</p>
+                  <div className="mt-2">
+                    <StatusBadge value={course.status} />
+                  </div>
                   <h2 className="mt-2 text-xl font-black text-slate-950">{course.title}</h2>
                   <p className="mt-2 text-sm text-slate-600">Instructor: {course.teacher_name}</p>
                   <div className="mt-5 flex items-center gap-3">
@@ -73,7 +88,7 @@ export default function StudentCoursesPage() {
                   </div>
                   <p className="mt-2 text-xs text-slate-500">{completed} / {total} published lessons completed</p>
                   <Link
-                    className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
+                    className="ph-action mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
                     to={`/student/courses/${course.id}`}
                   >
                     <BookOpen size={16} /> Open course

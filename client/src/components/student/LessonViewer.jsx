@@ -10,10 +10,11 @@ export default function LessonViewer({
   hasNext,
   hasPrevious,
   onMaterialError,
+  readOnly = false,
 }) {
   if (!lesson) {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-8 text-slate-600 shadow-sm">
+      <section className="ph-surface rounded-2xl p-8 text-slate-600">
         No lessons are available in this course yet.
       </section>
     );
@@ -22,7 +23,7 @@ export default function LessonViewer({
   const completed = lesson.completion?.isCompleted === true;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section className="ph-page-enter ph-surface rounded-2xl p-6 sm:p-8">
       <p className="text-sm font-extrabold uppercase tracking-wider text-emerald-700">
         Lesson
       </p>
@@ -40,7 +41,7 @@ export default function LessonViewer({
       </div>
 
       {lesson.learning_objectives && (
-        <section className="mt-6 rounded-xl bg-slate-50 p-4">
+        <section className="mt-6 rounded-xl border-l-4 border-emerald-500 bg-emerald-50/60 p-4">
           <h3 className="font-bold text-slate-900">Learning objectives</h3>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
             {lesson.learning_objectives}
@@ -48,10 +49,10 @@ export default function LessonViewer({
         </section>
       )}
 
-      <section className="mt-7">
+      <section className="mt-7 max-w-3xl">
         <h3 className="text-lg font-black text-slate-950">Lesson Content</h3>
         {lesson.content ? (
-          <p className="mt-3 whitespace-pre-wrap leading-8 text-slate-700">
+          <p className="mt-3 whitespace-pre-wrap text-[1.02rem] leading-8 text-slate-700">
             {lesson.content}
           </p>
         ) : (
@@ -68,7 +69,9 @@ export default function LessonViewer({
 
       <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <button
-          className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="ph-action inline-flex items-center justify-center gap-1 rounded-xl border
+            border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50
+            disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!hasPrevious}
           onClick={onPrevious}
           type="button"
@@ -76,9 +79,9 @@ export default function LessonViewer({
           <ChevronLeft aria-hidden="true" size={18} /> Previous Lesson
         </button>
 
-        {!completed && (
+        {!completed && !readOnly && (
           <button
-            className="rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="ph-action rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={completing}
             onClick={onComplete}
             type="button"
@@ -86,9 +89,16 @@ export default function LessonViewer({
             {completing ? "Marking complete..." : "Mark as Complete"}
           </button>
         )}
+        {readOnly && !completed && (
+          <span className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">
+            Archived course is read-only
+          </span>
+        )}
 
         <button
-          className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="ph-action inline-flex items-center justify-center gap-1 rounded-xl border
+            border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50
+            disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!hasNext}
           onClick={onNext}
           type="button"

@@ -24,7 +24,7 @@ function GoogleIcon() {
 function GoogleAuthButton({ children, disabled, onClick }) {
   return (
     <button
-      className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 shadow-sm hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-60"
+      className="ph-action flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 shadow-sm hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-60"
       disabled={disabled}
       onClick={onClick}
       type="button"

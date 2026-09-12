@@ -128,11 +128,12 @@ export function verifyCaptchaVerificationToken(
   );
 }
 
-export function captchaCookieOptions() {
+export function captchaCookieOptions(environment = process.env) {
+  const production = environment.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: production,
+    sameSite: production ? "none" : "lax",
     maxAge: CAPTCHA_LIFETIME_MS,
     path: "/api/auth",
   };

@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
 import StudentNav from "../../components/student/StudentNav.jsx";
 import api from "../../services/api.js";
+import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
@@ -16,7 +18,7 @@ export default function StudentAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadAnnouncements() {
+  const loadAnnouncements = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get("/student/announcements");
@@ -32,18 +34,19 @@ export default function StudentAnnouncementsPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadAnnouncements();
   }, []);
+
+  useDeferredLoad(loadAnnouncements);
 
   return (
     <main className="min-h-screen bg-slate-50">
       <StudentNav />
       <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-        <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Student workspace</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-950">Announcements</h1>
+        <PageHeader
+          description="Read published course and platform updates."
+          eyebrow="Student workspace"
+          title="Announcements"
+        />
         {loading && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading announcements..." /></div>}
         {error && (
           <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
@@ -61,7 +64,8 @@ export default function StudentAnnouncementsPage() {
         {!loading && !error && announcements.length > 0 && (
           <div className="mt-8 space-y-4">
             {announcements.map((announcement) => (
-              <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={announcement.id}>
+              <article className="ph-card-enter ph-surface relative overflow-hidden rounded-2xl p-6" key={announcement.id}>
+                <span aria-hidden="true" className="absolute bottom-0 left-0 top-0 w-1 bg-emerald-500" />
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">{announcement.course_code || "PhinmaHub"}</p>

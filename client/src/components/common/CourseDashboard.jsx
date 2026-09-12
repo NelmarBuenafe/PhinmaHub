@@ -84,7 +84,7 @@ function CourseDashboard({ role }) {
 
               return (
                 <article
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="ph-interactive-card rounded-2xl p-6"
                   key={course.id}
                 >
                   <div className="flex items-start justify-between gap-4">

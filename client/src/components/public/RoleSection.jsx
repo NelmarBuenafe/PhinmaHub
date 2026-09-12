@@ -45,7 +45,7 @@ function RoleSection() {
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {roles.map(({ icon: Icon, title, description, items, accent }) => (
             <article
-              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+              className="ph-interactive-card overflow-hidden rounded-3xl"
               key={title}
             >
               <div
@@ -77,7 +77,7 @@ function RoleSection() {
         </div>
         <div className="mt-8 text-center">
           <Link
-            className="inline-flex rounded-xl bg-emerald-700 px-6 py-3.5 font-bold text-white shadow-sm hover:bg-emerald-800"
+            className="ph-action inline-flex rounded-xl bg-emerald-700 px-6 py-3.5 font-bold text-white shadow-sm hover:bg-emerald-800"
             to="/choose-role"
           >
             Continue as Student or Teacher

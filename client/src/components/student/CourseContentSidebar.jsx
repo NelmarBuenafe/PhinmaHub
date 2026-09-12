@@ -19,7 +19,7 @@ function LessonItem({ lesson, selected, onSelect }) {
   return (
     <button
       aria-current={selected ? "page" : undefined}
-      className={`mt-1 flex w-full items-start gap-2 rounded-lg px-3 py-2.5 text-left text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+      className={`ph-action mt-1 flex w-full items-start gap-2 rounded-lg px-3 py-2.5 text-left text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
         selected
           ? "bg-emerald-100 text-emerald-950"
           : "text-slate-700 hover:bg-slate-100"
@@ -52,7 +52,7 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
     <section className="border-b border-slate-200 py-3 last:border-b-0">
       <button
         aria-expanded={expanded}
-        className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left focus:outline-none focus:ring-2 focus:ring-emerald-600"
+        className="ph-action flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600"
         onClick={() => setExpanded((value) => !value)}
         type="button"
       >
@@ -66,7 +66,7 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
         </span>
       </button>
       {expanded && (
-        <div className="ml-4 mt-1 border-l border-slate-200 pl-2">
+        <div className="ph-page-enter ml-4 mt-1 border-l border-slate-200 pl-2">
           {module.lessons.length ? (
             module.lessons.map((lesson) => (
               <LessonItem
@@ -89,7 +89,7 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
 
 export default function CourseContentSidebar({ modules, selectedLessonId, onSelectLesson }) {
   return (
-    <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+    <aside className="ph-surface rounded-2xl p-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
       <h2 className="px-2 text-lg font-black text-slate-950">Course Content</h2>
       {modules.length ? (
         <div className="mt-3">

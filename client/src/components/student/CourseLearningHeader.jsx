@@ -9,7 +9,7 @@ function ProgressBar({ value }) {
       aria-valuenow={value}
     >
       <div
-        className="h-full rounded-full bg-emerald-600 transition-all"
+        className="ph-progress-fill h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500"
         style={{ width: `${value}%` }}
       />
     </div>
@@ -22,7 +22,7 @@ export default function CourseLearningHeader({ course, completedCount, lessonCou
     : 0;
 
   return (
-    <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <header className="ph-page-enter ph-surface-soft rounded-2xl p-6">
       <p className="text-sm font-extrabold uppercase tracking-wider text-emerald-700">
         {course.course_code}
       </p>

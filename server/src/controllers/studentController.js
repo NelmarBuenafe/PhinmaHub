@@ -298,3 +298,23 @@ export async function getStudentProfile(request, response, next) {
     return sendUnexpected(next, "Unable to load student profile", cause);
   }
 }
+
+export async function getTeacherProfile(request, response, next) {
+  try {
+    const { data, error } = await supabase
+      .from("teacher_profiles")
+      .select("employee_id,campus,department,position")
+      .eq("user_id", request.auth.user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return response.json({
+      success: true,
+      data: {
+        profile: request.auth.profile,
+        teacherProfile: data,
+      },
+    });
+  } catch (cause) {
+    return sendUnexpected(next, "Unable to load teacher profile", cause);
+  }
+}

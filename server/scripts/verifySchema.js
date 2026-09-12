@@ -23,6 +23,8 @@ const requiredTables = {
   audit_logs: "id,actor_id,action,entity_type,entity_id,metadata,created_at",
   course_categories:
     "id,name,description,color,icon,is_active,created_at,updated_at",
+  lesson_materials:
+    "id,lesson_id,material_type,title,description,storage_path,external_url,file_name,mime_type,file_size,sort_order,created_at,updated_at",
 };
 
 const supabase = createClient(
@@ -68,5 +70,23 @@ for (const [table, columns] of Object.entries(requiredTables)) {
 
   console.log(JSON.stringify(result));
 }
+
+const { data: materialsBucket, error: bucketError } =
+  await supabase.storage.getBucket("lesson-materials");
+const bucketReady =
+  !bucketError &&
+  materialsBucket?.public === false &&
+  materialsBucket?.file_size_limit === 10 * 1024 * 1024;
+
+console.log(
+  JSON.stringify({
+    storageBucket: "lesson-materials",
+    available: !bucketError,
+    private: materialsBucket?.public === false,
+    fileSizeLimit: materialsBucket?.file_size_limit ?? null,
+  }),
+);
+
+if (!bucketReady) failed = true;
 
 process.exitCode = failed ? 1 : 0;

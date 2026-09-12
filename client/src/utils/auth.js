@@ -30,6 +30,15 @@ export function getFriendlyAuthError(
   if (message.includes("email not confirmed")) {
     return "Please verify your PHINMA email before signing in.";
   }
+  if (message.includes("banned") || message.includes("suspended")) {
+    return "This account is suspended. Contact your campus support office.";
+  }
+  if (message.includes("domain") || message.includes("institutional")) {
+    return "Please use your PHINMA institutional account.";
+  }
+  if (message.includes("rate limit") || message.includes("too many requests")) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
 
   return fallback;
 }

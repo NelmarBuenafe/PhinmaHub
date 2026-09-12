@@ -44,6 +44,7 @@ import {
 import {
   getStudentDashboard,
   getStudentProfile,
+  getTeacherProfile,
   listStudentAnnouncements,
   listStudentAssignmentsOverview,
 } from "../controllers/studentController.js";
@@ -76,6 +77,7 @@ studentCourseRouter.put("/assignments/:assignmentId/submission", saveStudentSubm
 export const teacherCourseRouter = Router();
 teacherCourseRouter.use(authenticate, authorizeRole("teacher"));
 teacherCourseRouter.get("/dashboard", teacherDashboard);
+teacherCourseRouter.get("/profile", getTeacherProfile);
 teacherCourseRouter.get("/course-categories", listTeacherCourseCategories);
 teacherCourseRouter.get("/courses", listTeacherCourses);
 teacherCourseRouter.post("/courses", createTeacherCourse);

@@ -2,6 +2,8 @@
 
 PhinmaHub is a role-based school learning platform built with React, Express and Supabase. Its authentication workflow supports email/password and Google OAuth, a math CAPTCHA, verified institutional-email activation, administrator invitations, role-protected routes, database tables and Row Level Security. Public, Student and Teacher course lists load from the database.
 
+For provider-neutral staging setup, environment relationships, external dashboard configuration, and the final manual QA gate, see [STAGING_DEPLOYMENT.md](STAGING_DEPLOYMENT.md).
+
 ## Technology stack
 
 - React 19, Vite 8, Tailwind CSS 4 and React Router
@@ -41,6 +43,7 @@ VITE_API_URL=http://localhost:5000/api
 
 ```env
 PORT=5000
+NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 SUPABASE_URL=
 SUPABASE_PUBLISHABLE_KEY=
@@ -64,6 +67,17 @@ After that, run `supabase/phase3-registration.sql` once. It adds the student ID 
 See `supabase/README.md` for schema verification and first-admin instructions.
 
 Before using the Admin Dashboard Categories page, run `supabase/phase4-admin.sql` once. It safely adds the missing normalized course-categories table and keeps RLS enabled.
+
+Run `supabase/phase5-submissions.sql` for databases created before submission
+grading protection was marked as a security-definer trigger. Run
+`supabase/phase6-lesson-materials.sql` before enabling lesson materials; it
+creates the materials table, RLS policies, and the private 10 MB
+`lesson-materials` Storage bucket.
+
+For production, set `NODE_ENV=production`, use the exact HTTPS frontend origin
+for `CLIENT_URL`, and set `VITE_API_URL` to the deployed API URL. The frontend
+intentionally refuses to start a production bundle configured to call
+localhost.
 
 ## Configure Google Cloud OAuth
 

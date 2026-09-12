@@ -58,7 +58,7 @@ function FeatureSection() {
         </div>
         <div className="mt-12 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(([Icon, title, description]) => (
-            <article className="flex gap-4" key={title}>
+            <article className="group flex gap-4 rounded-2xl border border-transparent p-3 transition-colors hover:border-emerald-100 hover:bg-emerald-50/40" key={title}>
               <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
                 <Icon aria-hidden="true" size={21} />
               </div>
@@ -97,7 +97,7 @@ function FeatureSection() {
                 ],
               ].map(([number, title, description]) => (
                 <li
-                  className="rounded-2xl border border-slate-700 bg-slate-900 p-5"
+                  className="rounded-2xl border border-slate-700 bg-slate-900 p-5 transition-colors hover:border-emerald-700 hover:bg-slate-800"
                   key={number}
                 >
                   <span className="text-sm font-black text-emerald-400">
