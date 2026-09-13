@@ -93,7 +93,7 @@ export function OverviewTab({ course, busy, onSave, onChange }) {
           Share this code with Students so they can join your course.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <code className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-lg font-black tracking-[0.2em] text-emerald-800">
+          <code className="max-w-full break-all rounded-xl border border-emerald-200 bg-white px-4 py-3 text-lg font-bold tracking-[0.16em] text-emerald-800">
             {course.join_code || "Unavailable"}
           </code>
           <button
@@ -341,7 +341,8 @@ function ModuleCard({
       ) : (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-black">{item.title}</h2>
+            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-emerald-700">Module · {item.lessons?.length || 0} lessons</p>
+            <h2 className="text-xl font-bold">{item.title}</h2>
             <p className="mt-2 text-slate-600">
               {item.description || "No description."}
             </p>
@@ -389,7 +390,7 @@ function ModuleCard({
         ))}
       </div>
 
-      <form className="mt-5 rounded-xl border border-dashed p-4" onSubmit={addLesson}>
+      <form className="mt-5 rounded-xl bg-slate-50 p-4" onSubmit={addLesson}>
         <h3 className="font-bold">Add lesson</h3>
         <input
           aria-label={`Lesson title for ${item.title}`}
@@ -826,12 +827,13 @@ function AssignmentCard({
   }
 
   return (
-    <article className="rounded-2xl border bg-white p-5">
+    <article className="ph-surface rounded-2xl p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-black">{item.title}</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <span>{item.total_points} points</span>
+            <span>{item.due_at ? `Due ${new Date(item.due_at).toLocaleString()}` : "No due date"}</span>
             <StatusBadge value={item.is_published ? "published" : "draft"} />
           </div>
         </div>
@@ -853,7 +855,7 @@ function AssignmentCard({
         </div>
       </div>
       <button
-        className="mt-3 text-sm font-bold text-emerald-800 hover:underline"
+        className="ph-action mt-4 rounded-xl border border-emerald-700 px-4 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
         onClick={() => onLoadSubmissions(item)}
         type="button"
       >
@@ -880,7 +882,7 @@ function SubmissionList({
       )}
       {submissions.map((submission) => (
         <form
-          className="mt-5 border-t pt-5"
+          className="mt-6 grid gap-5 border-t border-slate-100 pt-6 lg:grid-cols-[1.1fr_0.9fr]"
           key={submission.id}
           onSubmit={async (event) => {
             event.preventDefault();
@@ -895,64 +897,70 @@ function SubmissionList({
             }
           }}
         >
-          <p className="font-bold">
-            {[submission.student?.first_name, submission.student?.last_name]
-              .filter(Boolean)
-              .join(" ") ||
-              submission.student?.email ||
-              "Student"}
-          </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
-            {submission.written_answer || "No written answer."}
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm font-bold">
-              Score / {assignment.total_points}
-              <input
-                className={fieldClass}
-                max={assignment.total_points}
-                min="0"
-                onChange={(event) =>
-                  setGrades({
-                    ...grades,
-                    [submission.id]: {
-                      ...(grades[submission.id] || {}),
-                      score: event.target.value,
-                    },
-                  })
-                }
-                placeholder={`0–${assignment.total_points}`}
-                required
-                step="0.01"
-                type="number"
-                value={grades[submission.id]?.score ?? submission.score ?? ""}
-              />
-            </label>
-            <label className="text-sm font-bold">
-              Feedback
-              <input
-                className={fieldClass}
-                onChange={(event) =>
-                  setGrades({
-                    ...grades,
-                    [submission.id]: {
-                      ...(grades[submission.id] || {}),
-                      feedback: event.target.value,
-                    },
-                  })
-                }
-                placeholder="Feedback"
-                value={grades[submission.id]?.feedback ?? submission.feedback ?? ""}
-              />
-            </label>
+          <div className="min-w-0 rounded-xl bg-slate-50 p-5">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">Student response</h3>
+            <p className="break-words font-bold">
+              {[submission.student?.first_name, submission.student?.last_name]
+                .filter(Boolean)
+                .join(" ") ||
+                submission.student?.email ||
+                "Student"}
+            </p>
+            <p className="mt-3 break-words whitespace-pre-wrap text-sm leading-7 text-slate-700">
+              {submission.written_answer || "No written answer."}
+            </p>
           </div>
-          <button
-            className="mt-3 rounded-xl border border-emerald-700 px-4 py-2 text-sm font-bold text-emerald-800"
-            disabled={busy}
-            type="submit"
-          >
-            Save grade
-          </button>
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Teacher evaluation</h3>
+            <div className="mt-3 grid gap-4">
+              <label className="text-sm font-bold">
+                Score / {assignment.total_points}
+                <input
+                  className={fieldClass}
+                  max={assignment.total_points}
+                  min="0"
+                  onChange={(event) =>
+                    setGrades({
+                      ...grades,
+                      [submission.id]: {
+                        ...(grades[submission.id] || {}),
+                        score: event.target.value,
+                      },
+                    })
+                  }
+                  placeholder={`0–${assignment.total_points}`}
+                  required
+                  step="0.01"
+                  type="number"
+                  value={grades[submission.id]?.score ?? submission.score ?? ""}
+                />
+              </label>
+              <label className="text-sm font-bold">
+                Feedback
+                <input
+                  className={fieldClass}
+                  onChange={(event) =>
+                    setGrades({
+                      ...grades,
+                      [submission.id]: {
+                        ...(grades[submission.id] || {}),
+                        feedback: event.target.value,
+                      },
+                    })
+                  }
+                  placeholder="Feedback"
+                  value={grades[submission.id]?.feedback ?? submission.feedback ?? ""}
+                />
+              </label>
+            </div>
+            <button
+              className="ph-action mt-4 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"
+              disabled={busy}
+              type="submit"
+            >
+              Save grade
+            </button>
+          </div>
         </form>
       ))}
     </section>

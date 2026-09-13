@@ -32,7 +32,7 @@ const roles = [
 
 function RoleSection() {
   return (
-    <section className="bg-emerald-50/60 py-18 sm:py-22">
+    <section className="bg-white py-14 sm:py-18">
       <div className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-emerald-700">
@@ -45,7 +45,7 @@ function RoleSection() {
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {roles.map(({ icon: Icon, title, description, items, accent }) => (
             <article
-              className="ph-interactive-card overflow-hidden rounded-3xl"
+              className="ph-surface overflow-hidden rounded-2xl"
               key={title}
             >
               <div

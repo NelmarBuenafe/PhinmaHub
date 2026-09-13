@@ -46,7 +46,7 @@ function AuthLayout({ role = "student", children }) {
 
   return (
     <main className="min-h-screen bg-slate-50 lg:grid lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="relative overflow-hidden bg-slate-950 px-6 py-10 text-white lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:px-12 xl:px-18">
+      <section className="relative overflow-hidden bg-slate-950 px-6 py-5 text-white lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:px-12 xl:px-18">
         <div
           aria-hidden="true"
           className="absolute left-0 top-0 h-1.5 w-full bg-emerald-500"
@@ -60,15 +60,15 @@ function AuthLayout({ role = "student", children }) {
           </span>
           PhinmaHub
         </Link>
-        <div className="relative my-10 max-w-lg lg:my-16">
-          <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-yellow-300">
+        <div className="relative my-10 hidden max-w-lg lg:my-16 lg:block">
+          <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-emerald-300">
             PHINMA Education
           </p>
           <h1 className="mt-4 text-3xl font-black leading-tight sm:text-4xl xl:text-5xl">
             {details.heading}
           </h1>
           <p className="mt-5 leading-7 text-slate-300">{details.text}</p>
-          <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-xl">
+          <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="grid size-12 place-items-center rounded-xl bg-emerald-600">
                 <PreviewIcon aria-hidden="true" size={24} />
@@ -88,7 +88,7 @@ function AuthLayout({ role = "student", children }) {
               <div className="rounded-xl bg-slate-800 p-4">
                 <ChartNoAxesCombined
                   aria-hidden="true"
-                  className="text-yellow-300"
+                  className="text-emerald-300"
                   size={19}
                 />
                 <p className="mt-3 text-sm font-bold">Progress at a glance</p>
@@ -116,12 +116,12 @@ function AuthLayout({ role = "student", children }) {
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-slate-500">
+        <p className="relative hidden text-xs text-slate-400 lg:block">
           Learning made accessible.
         </p>
       </section>
-      <section className="flex min-h-screen items-start justify-center px-5 py-10 sm:px-8 lg:items-center lg:py-14">
-        <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/8 sm:p-9">
+      <section className="flex items-start justify-center px-5 py-10 sm:px-8 lg:min-h-screen lg:items-center lg:py-14">
+        <div className="ph-elevated w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-9">
           {children}
         </div>
       </section>

@@ -87,7 +87,7 @@ function PublicNavbar() {
 
       {open && (
         <div
-          className="ph-dialog-panel border-t border-slate-200 bg-white px-5 py-4 lg:hidden"
+          className="ph-dialog-panel max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-slate-200 bg-white px-5 py-4 lg:hidden"
           id="mobile-navigation"
         >
           <div className="mx-auto max-w-7xl space-y-1">

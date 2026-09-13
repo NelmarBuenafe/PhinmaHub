@@ -1,9 +1,6 @@
-import { useCallback, useState } from "react";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
-import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
@@ -14,42 +11,21 @@ function formatDate(value) {
 }
 
 export default function StudentAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadAnnouncements = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/student/announcements");
-      setAnnouncements(response.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.status >= 500
-          ? "We couldn't load announcements."
-          : requestError.response?.data?.message ||
-              "We couldn't load announcements.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useDeferredLoad(loadAnnouncements);
+  const { data: response, error, loading, reload: loadAnnouncements } = useApiQuery("/student/announcements", { errorMessage: "We couldn't load announcements." });
+  const announcements = response?.data || [];
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <StudentNav />
-      <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page max-w-[960px]">
         <PageHeader
           description="Read published course and platform updates."
           eyebrow="Student workspace"
           title="Announcements"
         />
-        {loading && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading announcements..." /></div>}
+        {loading && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="announcements" label="Loading announcements..." /></div>}
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 ph-error p-6">
             <p>{error}</p>
             <button className="mt-3 font-bold underline" onClick={loadAnnouncements} type="button">
               Retry
@@ -57,12 +33,12 @@ export default function StudentAnnouncementsPage() {
           </div>
         )}
         {!loading && !error && !announcements.length && (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
             No recent announcements.
           </div>
         )}
         {!loading && !error && announcements.length > 0 && (
-          <div className="mt-8 space-y-4">
+          <div className="mt-6 space-y-4">
             {announcements.map((announcement) => (
               <article className="ph-card-enter ph-surface relative overflow-hidden rounded-2xl p-6" key={announcement.id}>
                 <span aria-hidden="true" className="absolute bottom-0 left-0 top-0 w-1 bg-emerald-500" />
@@ -73,12 +49,12 @@ export default function StudentAnnouncementsPage() {
                   </div>
                   <time className="text-sm text-slate-500" dateTime={announcement.published_at}>{formatDate(announcement.published_at)}</time>
                 </div>
-                <p className="mt-4 whitespace-pre-wrap leading-7 text-slate-700">{announcement.body}</p>
+                <p className="mt-4 max-w-[72ch] whitespace-pre-wrap leading-7 text-slate-700">{announcement.body}</p>
               </article>
             ))}
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

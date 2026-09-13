@@ -1,9 +1,9 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { ConfirmationDialog } from "../admin/AdminUI.jsx";
 import Loading from "../common/Loading.jsx";
 import StatusBadge from "../common/StatusBadge.jsx";
 import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const initialForm = { title: "", body: "", isPublished: false };
 
@@ -26,29 +26,16 @@ function formValues(announcement) {
 }
 
 export default function TeacherAnnouncementsPanel({ courseId }) {
-  const [announcements, setAnnouncements] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editing, setEditing] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const loadAnnouncements = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/teacher/courses/${courseId}/announcements`);
-      setAnnouncements(response.data.data || []);
-      setError("");
-    } catch (requestError) {
-      setError(requestError.response?.data?.message || "We couldn't load announcements.");
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId]);
-
-  useDeferredLoad(loadAnnouncements);
+  const { data, loading, error: loadError, reload: loadAnnouncements } = useApiQuery(`/teacher/courses/${courseId}/announcements`, { errorMessage: "We couldn't load announcements." });
+  const announcements = data?.data || [];
+  const error = actionError || loadError;
 
   function changeForm(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -187,10 +174,11 @@ export default function TeacherAnnouncementsPanel({ courseId }) {
       )}
       {loading && (
         <div className="ph-surface rounded-2xl p-6">
-          <Loading label="Loading announcements..." />
+          <Loading variant="announcements" label="Loading announcements..." />
         </div>
       )}
-      {!loading && announcements.length === 0 && (
+      {loadError && <button className="font-bold underline" onClick={loadAnnouncements} type="button">Retry announcements</button>}
+      {!loading && !loadError && announcements.length === 0 && (
         <div className="ph-surface rounded-2xl p-6 text-slate-600">
           No announcements yet.
         </div>
@@ -207,7 +195,7 @@ export default function TeacherAnnouncementsPanel({ courseId }) {
                 <h3 className="text-lg font-black text-slate-950">
                   {announcement.title}
                 </h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
+                <p className="mt-2 max-w-[72ch] whitespace-pre-wrap text-sm leading-7 text-slate-600">
                   {announcement.body}
                 </p>
               </div>

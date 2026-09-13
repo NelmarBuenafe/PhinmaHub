@@ -1,6 +1,8 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
+import StatusBadge from "../../components/common/StatusBadge.jsx";
 import { ConfirmationDialog } from "../../components/admin/AdminUI.jsx";
 import TeacherAnnouncementsPanel from "../../components/teacher/TeacherAnnouncementsPanel.jsx";
 import {
@@ -10,9 +12,8 @@ import {
   StudentsTab,
 } from "../../components/teacher/TeacherCourseOverviewTabs.jsx";
 import { emptyAssignment } from "../../components/teacher/teacherCourseOverviewConstants.js";
-import TeacherNav from "../../components/teacher/TeacherNav.jsx";
 import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const tabs = ["Overview", "Modules", "Assignments", "Students", "Announcements"];
 
@@ -34,12 +35,9 @@ function Alert({ children, error = false }) {
 export default function TeacherCourseOverviewPage() {
   const { courseId } = useParams();
   const location = useLocation();
-  const [course, setCourse] = useState(null);
   const [tab, setTab] = useState("Overview");
-  const [items, setItems] = useState([]);
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
   const [notice, setNotice] = useState(location.state?.success || "");
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [module, setModule] = useState({ title: "", description: "" });
   const [lesson, setLesson] = useState({});
@@ -53,48 +51,17 @@ export default function TeacherCourseOverviewPage() {
   const [grades, setGrades] = useState({});
   const [confirmation, setConfirmation] = useState(null);
 
-  const loadCourse = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/teacher/courses/${courseId}`);
-      setCourse(response.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "Course details could not be loaded.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId]);
-
-  const loadTab = useCallback(async () => {
-    if (tab === "Overview" || tab === "Announcements") return;
-    const endpoint =
-      tab === "Modules"
-        ? "modules"
-        : tab === "Assignments"
-          ? "assignments"
-          : "students";
-    try {
-      const response = await api.get(`/teacher/courses/${courseId}/${endpoint}`);
-      setItems(response.data.data || []);
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          `Unable to load ${tab.toLowerCase()}.`,
-      );
-    }
-  }, [courseId, tab]);
-
-  const loadReadyTab = useCallback(() => {
-    if (course) return loadTab();
-    return undefined;
-  }, [course, loadTab]);
-
-  useDeferredLoad(loadCourse);
-  useDeferredLoad(loadReadyTab);
+  const courseQuery = useApiQuery(`/teacher/courses/${courseId}`, { errorMessage: "Course details could not be loaded." });
+  const endpoint = tab === "Modules" ? "modules" : tab === "Assignments" ? "assignments" : "students";
+  const tabQuery = useApiQuery(`/teacher/courses/${courseId}/${endpoint}`, { enabled: !["Overview", "Announcements"].includes(tab), errorMessage: `Unable to load ${tab.toLowerCase()}.` });
+  const [courseEdit, setCourseEdit] = useState(null);
+  const course = courseEdit?.courseId === courseId && courseEdit.base === courseQuery.data ? courseEdit.value : courseQuery.data?.data;
+  const setCourse = (updater) => setCourseEdit({ courseId, base: courseQuery.data, value: typeof updater === "function" ? updater(course) : updater });
+  const items = tabQuery.data?.data || [];
+  const loading = courseQuery.loading;
+  const error = actionError || courseQuery.error || tabQuery.error;
+  const loadCourse = courseQuery.reload;
+  const loadTab = tabQuery.reload;
 
   async function save(action, message) {
     setBusy(true);
@@ -170,20 +137,21 @@ export default function TeacherCourseOverviewPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <TeacherNav />
-        <div className="p-10">
-          <Loading label="Loading course..." />
+      <div className="min-w-0">
+
+        <div className="ph-role-page">
+          <PageHeader eyebrow="Teacher workspace" title="Manage Course" />
+          <div className="mt-6"><Loading variant="courses" label="Loading course..." /></div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!course) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <TeacherNav />
-        <div className="mx-auto max-w-5xl p-10">
+      <div className="min-w-0">
+
+        <div className="ph-role-page">
           <Alert error>{error}</Alert>
           <button
             className="mt-4 rounded-xl bg-emerald-700 px-4 py-2 font-bold text-white"
@@ -193,30 +161,32 @@ export default function TeacherCourseOverviewPage() {
             Retry
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <TeacherNav />
-      <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
         <Link className="ph-action inline-flex text-sm font-bold text-emerald-800 hover:-translate-x-0.5" to="/teacher/courses">
           ← Back to My Courses
         </Link>
-        <div className="ph-page-enter ph-surface-soft relative mt-6 overflow-hidden rounded-3xl p-6 sm:p-8">
-          <div aria-hidden="true" className="absolute -right-12 -top-16 size-44 rounded-full border-[26px] border-emerald-100/70" />
-          <p className="relative text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Manage Course</p>
-          <h1 className="relative mt-2 text-3xl font-black tracking-tight text-slate-950">{course.course_code} · {course.title}</h1>
+        <div className="ph-page-enter ph-surface mt-6 rounded-2xl p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Manage Course · {course.course_code}</p>
+            <StatusBadge value={course.status} />
+          </div>
+          <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{course.title}</h1>
         </div>
 
         <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
-          <div className="flex flex-wrap gap-2">
+          <div className="ph-tabs max-w-full border-b-0">
             {tabs.map((item) => (
               <button
-                className={`ph-action rounded-t-xl px-4 py-3 text-sm font-bold ${
+                className={`ph-tab ${
                   tab === item
-                    ? "bg-emerald-700 text-white shadow-sm"
+                    ? "ph-tab-active"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
                 key={item}
@@ -251,7 +221,9 @@ export default function TeacherCourseOverviewPage() {
         {tab === "Announcements" && (
           <TeacherAnnouncementsPanel courseId={courseId} />
         )}
-        {tab === "Modules" && (
+        {tabQuery.loading && <div className="mt-6"><Loading variant="courses" label={`Loading ${tab.toLowerCase()}...`} /></div>}
+        {tabQuery.error && <button className="mt-3 font-bold underline" onClick={loadTab} type="button">Retry section</button>}
+        {tab === "Modules" && !tabQuery.loading && !tabQuery.error && (
           <ModulesTab
             busy={busy}
             courseId={courseId}
@@ -269,7 +241,7 @@ export default function TeacherCourseOverviewPage() {
             setModule={setModule}
           />
         )}
-        {tab === "Assignments" && (
+        {tab === "Assignments" && !tabQuery.loading && !tabQuery.error && (
           <AssignmentsTab
             assignment={assignment}
             busy={busy}
@@ -287,7 +259,7 @@ export default function TeacherCourseOverviewPage() {
             submissions={submissions}
           />
         )}
-        {tab === "Students" && (
+        {tab === "Students" && !tabQuery.loading && !tabQuery.error && (
           <StudentsTab
             busy={busy}
             courseId={courseId}
@@ -313,6 +285,6 @@ export default function TeacherCourseOverviewPage() {
           {confirmation?.message}
         </ConfirmationDialog>
       </section>
-    </main>
+    </div>
   );
 }

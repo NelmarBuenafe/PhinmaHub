@@ -1,5 +1,6 @@
 import axios from "axios";
 import { supabase } from "./supabase.js";
+import { invalidateAfterMutation } from "../utils/queryCache.js";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const apiBaseUrl =
@@ -33,6 +34,11 @@ api.interceptors.request.use(async (config) => {
   }
 
   return config;
+});
+
+api.interceptors.response.use((response) => {
+  invalidateAfterMutation(response.config.url, response.config.method);
+  return response;
 });
 
 export default api;

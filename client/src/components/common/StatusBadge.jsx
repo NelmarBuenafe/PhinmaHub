@@ -11,19 +11,19 @@ const variants = {
   active: ["bg-emerald-100 text-emerald-900", CheckCircle2],
   archived: ["bg-slate-200 text-slate-800", Archive],
   completed: ["bg-emerald-100 text-emerald-900", CheckCircle2],
-  draft: ["bg-blue-100 text-blue-900", FilePenLine],
+  draft: ["bg-slate-100 text-slate-800", FilePenLine],
   graded: ["bg-emerald-100 text-emerald-900", CheckCircle2],
-  in_progress: ["bg-blue-100 text-blue-900", Clock3],
+  in_progress: ["bg-slate-100 text-slate-800", Clock3],
   late: ["bg-amber-100 text-amber-950", CircleAlert],
   new: ["bg-amber-100 text-amber-950", Clock3],
   pending: ["bg-amber-100 text-amber-950", Clock3],
   published: ["bg-emerald-100 text-emerald-900", CheckCircle2],
   rejected: ["bg-red-100 text-red-900", CircleAlert],
   resolved: ["bg-emerald-100 text-emerald-900", CheckCircle2],
-  student: ["bg-blue-100 text-blue-900", UserRound],
-  submitted: ["bg-violet-100 text-violet-900", CheckCircle2],
+  student: ["bg-slate-100 text-slate-800", UserRound],
+  submitted: ["bg-slate-100 text-slate-800", CheckCircle2],
   suspended: ["bg-red-100 text-red-900", CircleAlert],
-  teacher: ["bg-violet-100 text-violet-900", UserRound],
+  teacher: ["bg-slate-100 text-slate-800", UserRound],
 };
 
 export default function StatusBadge({ label, value }) {
@@ -35,7 +35,7 @@ export default function StatusBadge({ label, value }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-current/10 px-2.5 py-1 text-xs font-black capitalize shadow-sm transition-colors ${styles}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-current/10 px-2.5 py-1 text-xs font-semibold capitalize transition-colors ${styles}`}
     >
       <Icon aria-hidden="true" size={13} strokeWidth={2.5} />
       {label || normalized.replaceAll("_", " ")}

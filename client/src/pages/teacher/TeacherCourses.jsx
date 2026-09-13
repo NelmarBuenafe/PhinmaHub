@@ -1,6 +1,5 @@
 import { BookOpen, PlusCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import TeacherNav from "../../components/teacher/TeacherNav.jsx";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
@@ -25,11 +24,11 @@ export function CourseCards({ courses, emptyAction = false }) {
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-2">
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {courses.map((course) => (
-        <article className="ph-interactive-card rounded-2xl p-6" key={course.id}>
+        <article className="ph-interactive-card ph-course-card" key={course.id}>
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
                 {course.course_code}
               </p>
@@ -45,7 +44,7 @@ export function CourseCards({ courses, emptyAction = false }) {
             <span className="capitalize">{course.visibility}</span>
           </div>
           <Link
-            className="ph-action mt-5 inline-flex rounded-lg border border-emerald-700 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
+            className="ph-action mt-auto inline-flex self-start rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"
             to={`/teacher/courses/${course.id}`}
           >
             Manage Course
@@ -60,9 +59,9 @@ export default function TeacherCourses() {
   const { courses, error, loading, reload } = useCourseList("/teacher/courses");
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <TeacherNav />
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
         <PageHeader
           action={
             <Link
@@ -77,12 +76,12 @@ export default function TeacherCourses() {
           title="My Courses"
         />
         {loading && (
-          <div className="mt-8 rounded-2xl border bg-white p-8">
-            <Loading label="Loading your courses..." />
+          <div className="mt-6 rounded-2xl border bg-white p-8">
+            <Loading variant="courses" label="Loading your courses..." />
           </div>
         )}
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 ph-error p-6">
             <p>{error}</p>
             <button
               className="mt-3 font-bold underline"
@@ -94,11 +93,11 @@ export default function TeacherCourses() {
           </div>
         )}
         {!loading && !error && (
-          <div className="mt-8">
+          <div className="mt-6">
             <CourseCards courses={courses} emptyAction />
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

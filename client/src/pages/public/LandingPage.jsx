@@ -15,9 +15,9 @@ function LandingPage() {
       <main>
         <HeroSection />
         <StatsSection />
-        <PopularCourses />
-        <FeatureSection />
         <RoleSection />
+        <FeatureSection />
+        <PopularCourses />
         <StudyToolsPreview />
         <CallToAction />
       </main>

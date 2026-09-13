@@ -1,10 +1,7 @@
-import { useCallback, useState } from "react";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import ProfileDetails from "../../components/common/ProfileDetails.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
-import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const sections = [
   {
@@ -27,38 +24,21 @@ const sections = [
 ];
 
 export default function StudentProfilePage() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
-
-  const loadProfile = useCallback(async () => {
-    try {
-      const response = await api.get("/student/profile");
-      setData(response.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.status >= 500
-          ? "We couldn't load your profile."
-          : requestError.response?.data?.message ||
-              "We couldn't load your profile.",
-      );
-    }
-  }, []);
-
-  useDeferredLoad(loadProfile);
+  const { data: response, error, reload: loadProfile } = useApiQuery("/student/profile", { errorMessage: "We couldn't load your profile." });
+  const data = response?.data;
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <StudentNav />
-      <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page max-w-[1100px]">
         <PageHeader
           description="Review the personal and academic information associated with your account."
           eyebrow="Student workspace"
           title="My Profile"
         />
-        {!data && !error && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading your profile..." /></div>}
+        {!data && !error && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="profile" label="Loading your profile..." /></div>}
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
             <p>{error}</p>
             <button className="mt-3 font-bold underline" onClick={loadProfile} type="button">
               Retry
@@ -73,6 +53,6 @@ export default function StudentProfilePage() {
           />
         )}
       </section>
-    </main>
+    </div>
   );
 }

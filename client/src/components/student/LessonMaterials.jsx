@@ -20,7 +20,7 @@ function openExternal(url) {
 
 function MaterialCard({ children }) {
   return (
-    <article className="ph-interactive-card rounded-xl p-4">
+    <article className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/40 p-4">
       {children}
     </article>
   );
@@ -32,7 +32,7 @@ function MaterialHeading({ Icon, title, type }) {
       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
         <Icon aria-hidden="true" size={19} />
       </span>
-      <div>
+      <div className="min-w-0 break-words">
         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
           {type}
         </p>
@@ -69,13 +69,13 @@ export default function LessonMaterials({ materials, onError }) {
   }
 
   return (
-    <div className="mt-8 space-y-8">
+    <div className="mt-10 space-y-7 border-t border-slate-100 pt-7">
       {documents.length > 0 && (
         <section aria-labelledby="document-materials-heading">
           <h3 className="text-lg font-black text-slate-950" id="document-materials-heading">
             Documents
           </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {documents.map((material) => {
               const isPdf = material.mime_type === "application/pdf";
               return (
@@ -151,7 +151,7 @@ export default function LessonMaterials({ materials, onError }) {
           <h3 className="text-lg font-black text-slate-950" id="external-materials-heading">
             External Resources
           </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {links.map((material) => (
               <MaterialCard key={material.id}>
                 <MaterialHeading
@@ -182,7 +182,7 @@ export default function LessonMaterials({ materials, onError }) {
           <h3 className="text-lg font-black text-slate-950" id="activity-materials-heading">
             Lesson Activity
           </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {forms.map((material) => (
               <MaterialCard key={material.id}>
                 <MaterialHeading
@@ -195,7 +195,7 @@ export default function LessonMaterials({ materials, onError }) {
                     "Complete this activity after studying the lesson."}
                 </p>
                 <button
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
+                  className="ph-action mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-50"
                   onClick={() => openExternal(material.external_url)}
                   type="button"
                 >

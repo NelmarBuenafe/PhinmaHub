@@ -14,17 +14,17 @@ export default function ProfileDetails({ details, profile, sections }) {
       : "Member";
 
   return (
-    <div className="mt-8 space-y-6">
-      <section className="ph-card-enter relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 text-white shadow-xl shadow-slate-900/15 sm:p-8">
+    <div className="mt-6 space-y-6">
+      <section className="ph-card-enter relative overflow-hidden rounded-2xl bg-slate-950 p-6 text-white shadow-xl shadow-slate-900/15 sm:p-8">
         <div aria-hidden="true" className="absolute -right-12 -top-16 size-48 rounded-full border-[30px] border-white/5" />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="grid size-20 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-2xl font-black tracking-tight shadow-inner backdrop-blur">
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">{role} profile · Verified PhinmaHub account</p>
-            <h2 className="mt-2 truncate text-2xl font-black tracking-tight">{name || "Profile"}</h2>
-            <p className="mt-1 truncate text-sm text-slate-300">{profile.email}</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">{role} profile · PhinmaHub account</p>
+            <h2 className="mt-2 break-words text-2xl font-black tracking-tight">{name || "Profile"}</h2>
+            <p className="mt-1 break-all text-sm text-slate-300">{profile.email}</p>
           </div>
         </div>
       </section>
@@ -40,9 +40,9 @@ export default function ProfileDetails({ details, profile, sections }) {
           </div>
           <dl className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
             {section.fields.map(([label, getValue]) => (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3" key={label}>
+              <div className="min-w-0 rounded-xl bg-slate-50/70 px-4 py-3" key={label}>
                 <dt className="text-sm font-semibold text-slate-600">{label}</dt>
-                <dd className="mt-1 font-bold text-slate-950">
+                <dd className="mt-1 break-words font-semibold text-slate-950">
                   {getValue(profile, details) || "Not provided"}
                 </dd>
               </div>

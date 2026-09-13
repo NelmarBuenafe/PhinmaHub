@@ -23,21 +23,23 @@ export function LoadingSkeleton({ rows = 4 }) {
 }
 export function EmptyState({ message = "No records found." }) {
   return (
-    <div className="ph-surface rounded-2xl border-dashed p-10 text-center">
-      <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-400"><Inbox /></span>
+    <div className="rounded-2xl bg-slate-50/80 px-6 py-10 text-center">
+      <span className="mx-auto grid size-12 place-items-center rounded-xl bg-white text-slate-500"><Inbox aria-hidden="true" /></span>
       <p className="mt-3 font-bold text-slate-700">{message}</p>
+      <p className="mt-2 text-sm text-slate-500">New items will appear here when available.</p>
     </div>
   );
 }
 export function ErrorState({ onRetry }) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-      <AlertCircle className="mx-auto text-red-600" />
-      <p className="mt-3 font-bold text-red-800">
+    <div className="ph-surface rounded-2xl p-6 text-center" role="alert">
+      <AlertCircle aria-hidden="true" className="mx-auto text-red-600" />
+      <p className="mt-3 font-bold text-slate-900">
         This information could not be loaded.
       </p>
+      <p className="mt-2 text-sm text-slate-600">Please check your connection and try again.</p>
       <button
-        className="ph-action mt-4 rounded-lg bg-red-700 px-4 py-2 text-sm font-bold text-white hover:bg-red-800"
+        className="ph-action mt-4 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"
         onClick={onRetry}
         type="button"
       >

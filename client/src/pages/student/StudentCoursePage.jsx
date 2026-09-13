@@ -1,13 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import CourseContentSidebar from "../../components/student/CourseContentSidebar.jsx";
 import CourseLearningHeader from "../../components/student/CourseLearningHeader.jsx";
 import LessonViewer from "../../components/student/LessonViewer.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
 import Loading from "../../components/common/Loading.jsx";
+import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
 import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const tabs = ["Course Content", "Assignments"];
 
@@ -44,11 +44,14 @@ function AssignmentPanel({ assignments, onSaveSubmission, readOnly }) {
               ` · Due ${new Date(assignment.due_at).toLocaleString()}`}
           </p>
           {assignment.submission?.status === "graded" && (
-            <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
-              ✓ Graded · Score: {assignment.submission.score} / {assignment.total_points}
-              <br />
-              Teacher Feedback: {assignment.submission.feedback || "No feedback."}
-            </p>
+            <section className="mt-5 rounded-xl bg-emerald-50/70 p-5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800">Graded assignment</h3>
+              <p className="mt-2 text-2xl font-bold tracking-tight text-emerald-950">
+                {assignment.submission.score} <span className="text-sm font-medium text-emerald-800">/ {assignment.total_points} points</span>
+              </p>
+              <h4 className="mt-4 text-sm font-bold text-slate-900">Teacher feedback</h4>
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">{assignment.submission.feedback || "No feedback."}</p>
+            </section>
           )}
           {readOnly && assignment.submission?.status !== "graded" && (
             <p className="mt-4 rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
@@ -99,36 +102,21 @@ function AssignmentPanel({ assignments, onSaveSubmission, readOnly }) {
 export default function StudentCoursePage() {
   const { courseId } = useParams();
   const [searchParams] = useSearchParams();
-  const [learning, setLearning] = useState(null);
-  const [assignments, setAssignments] = useState([]);
+  const learningQuery = useApiQuery(`/student/courses/${courseId}/learning`, { errorMessage: "Course content could not be loaded." });
+  const assignmentQuery = useApiQuery(`/student/courses/${courseId}/assignments`, { errorMessage: "Assignments could not be loaded." });
+  const learning = learningQuery.data?.data;
+  const assignments = assignmentQuery.data?.data || [];
+  const setLearning = (updater) => learningQuery.update((current) => ({ ...current, data: updater(current.data) }));
   const [activeTab, setActiveTab] = useState(
     searchParams.get("tab") === "Assignments" ? "Assignments" : "Course Content",
   );
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [completingLessonIds, setCompletingLessonIds] = useState(() => new Set());
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
+  const error = actionError || learningQuery.error;
   const [notice, setNotice] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      const [learningResponse, assignmentResponse] = await Promise.all([
-        api.get(`/student/courses/${courseId}/learning`),
-        api.get(`/student/courses/${courseId}/assignments`),
-      ]);
-      setLearning(learningResponse.data.data);
-      setAssignments(assignmentResponse.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.status >= 500
-          ? "Course content could not be loaded."
-          : requestError.response?.data?.message ||
-              "Course content could not be loaded.",
-      );
-    }
-  }, [courseId]);
 
-  useDeferredLoad(load);
 
   const lessons = useMemo(
     () => learning?.modules.flatMap((module) => module.lessons) || [],
@@ -170,7 +158,6 @@ export default function StudentCoursePage() {
         })),
       }));
       setNotice("Lesson marked complete.");
-      await load();
     } catch (requestError) {
       setError(
         requestError.response?.status >= 500
@@ -198,7 +185,7 @@ export default function StudentCoursePage() {
         submit,
       });
       setNotice(submit ? "Assignment submitted." : "Draft saved.");
-      await load();
+      await assignmentQuery.reload();
     } catch (requestError) {
       setError(
         requestError.response?.status >= 500
@@ -210,27 +197,30 @@ export default function StudentCoursePage() {
 
   if (!learning && !error) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8">
-        <Loading label="Loading course..." />
-      </main>
+      <div className="ph-role-page">
+        <PageHeader eyebrow="Student workspace" title="Course Learning" />
+        <div className="mt-6"><Loading variant="lesson" label="Loading course..." /></div>
+      </div>
     );
   }
 
   if (!learning) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8">
-        <p className="rounded-xl bg-red-50 p-4 text-red-800">{error}</p>
+      <div className="ph-role-page">
+        <PageHeader eyebrow="Student workspace" title="Course Learning" />
+        <p className="mt-6 rounded-xl bg-red-50 p-4 text-red-800" role="alert">{error}</p>
+        <button className="mt-3 font-bold text-emerald-800 underline" onClick={learningQuery.reload} type="button">Retry</button>
         <Link className="mt-4 inline-block font-bold text-emerald-800" to="/student/courses">
           Back to My Courses
         </Link>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <StudentNav />
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
         <Link className="text-sm font-bold text-emerald-800 hover:underline" to="/student/courses">
           ← My Courses
         </Link>
@@ -249,14 +239,14 @@ export default function StudentCoursePage() {
 
         <div
           aria-label="Course sections"
-          className="mt-7 flex gap-2 overflow-x-auto border-b border-slate-200"
+          className="ph-tabs mt-6"
           role="tablist"
         >
           {tabs.map((tab) => (
             <button
-              className={`rounded-t-xl px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+              className={`ph-tab focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
                 activeTab === tab
-                  ? "bg-emerald-700 text-white"
+                  ? "ph-tab-active"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
               key={tab}
@@ -282,7 +272,7 @@ export default function StudentCoursePage() {
         )}
 
         {activeTab === "Course Content" ? (
-          <div className="mt-6 grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[272px_minmax(0,1fr)]">
             <CourseContentSidebar
               modules={learning.modules}
               onSelectLesson={setSelectedLessonId}
@@ -293,6 +283,8 @@ export default function StudentCoursePage() {
               hasNext={selectedIndex >= 0 && selectedIndex < lessons.length - 1}
               hasPrevious={selectedIndex > 0}
               lesson={selectedLesson}
+              nextLesson={lessons[selectedIndex + 1]}
+              previousLesson={lessons[selectedIndex - 1]}
               onComplete={() => completeLesson(selectedLesson.id)}
               onNext={() => setSelectedLessonId(lessons[selectedIndex + 1].id)}
               onMaterialError={setError}
@@ -302,14 +294,14 @@ export default function StudentCoursePage() {
           </div>
         ) : (
           <div className="mt-6">
-            <AssignmentPanel
+            {assignmentQuery.loading ? <Loading variant="assignments" label="Loading assignments..." /> : assignmentQuery.error ? <div className="ph-error p-6" role="alert"><p>{assignmentQuery.error}</p><button className="mt-3 font-bold underline" onClick={assignmentQuery.reload} type="button">Retry</button></div> : <AssignmentPanel
               assignments={assignments}
               onSaveSubmission={saveSubmission}
               readOnly={learning.course.status === "archived"}
-            />
+            />}
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

@@ -1,7 +1,24 @@
-import { Bell, ChevronDown, Menu, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext.js";
+import RoleNav from "../common/RoleNav.jsx";
+
+const primaryLinks = [
+  { to: "/admin", label: "Dashboard", end: true },
+  { to: "/admin/users", label: "Users" },
+  { to: "/admin/courses", label: "Courses" },
+];
+const secondaryLinks = [
+  { to: "/admin/users/students", label: "Students" },
+  { to: "/admin/users/teachers", label: "Teachers" },
+  { to: "/admin/categories", label: "Categories" },
+  { to: "/admin/announcements", label: "Announcements" },
+  { to: "/admin/study-tools", label: "Study Tools" },
+  { to: "/admin/messages", label: "Contact Messages" },
+  { to: "/admin/audit-logs", label: "Audit Logs" },
+  { to: "/admin/settings", label: "Settings" },
+];
 
 const titles = {
   "/admin": "Dashboard",
@@ -18,11 +35,10 @@ const titles = {
   "/admin/settings": "Settings",
 };
 
-function AdminTopbar({ onMenu }) {
+function AdminTopbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
-  const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
   const [search, setSearch] = useState(
     new URLSearchParams(location.search).get("search") || "",
   );
@@ -33,9 +49,6 @@ function AdminTopbar({ onMenu }) {
     "/admin/users/teachers",
     "/admin/courses",
   ].includes(location.pathname);
-  const name =
-    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
-    "Administrator";
 
   function submit(event) {
     event.preventDefault();
@@ -53,29 +66,14 @@ function AdminTopbar({ onMenu }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-[0_1px_18px_rgb(15_23_42/0.04)] backdrop-blur-xl">
-      <div className="flex h-20 items-center gap-4 px-4 sm:px-6">
-        <button
-          aria-label="Open administration menu"
-          className="ph-action rounded-xl border border-slate-200 p-2.5 hover:bg-slate-50 lg:hidden"
-          onClick={onMenu}
-          type="button"
-        >
-          <Menu size={21} />
-        </button>
-        <div className="min-w-0">
-          <p className="truncate text-xs font-bold text-slate-400">
-            Administration / {title}
-          </p>
-          <h1 className="truncate text-xl font-black text-slate-950">
-            {title}
-          </h1>
-        </div>
+    <>
+      <RoleNav links={primaryLinks} moreLinks={secondaryLinks} role="Admin" onSignOut={logout} />
+      {searchable && (
         <form
-          className="ml-auto hidden max-w-sm flex-1 md:block"
+          className="ph-app-container flex justify-end pt-4"
           onSubmit={submit}
         >
-          <label className="relative block">
+          <label className="relative block w-full sm:max-w-sm">
             <span className="sr-only">
               {searchable
                 ? `Search ${title}`
@@ -98,89 +96,8 @@ function AdminTopbar({ onMenu }) {
             />
           </label>
         </form>
-        <button
-          aria-label="Review pending notifications"
-          className="ph-action rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
-          onClick={() => navigate("/admin/approvals")}
-          type="button"
-        >
-          <Bell size={20} />
-        </button>
-        <div className="relative">
-          <button
-            aria-controls="admin-account-menu"
-            aria-expanded={open}
-            aria-haspopup="menu"
-            aria-label="Open administrator account menu"
-            className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-slate-50"
-            onClick={() => setOpen(!open)}
-            type="button"
-          >
-            {profile?.avatar_url ? (
-              <img
-                alt="Admin profile"
-                className="size-9 rounded-full object-cover"
-                src={profile.avatar_url}
-              />
-            ) : (
-              <span className="grid size-9 place-items-center rounded-full bg-emerald-700 font-black text-white">
-                {name[0]}
-              </span>
-            )}
-            <span className="hidden text-left xl:block">
-              <span className="block max-w-36 truncate text-sm font-bold">
-                {name}
-              </span>
-              <span className="block text-xs text-slate-500">Admin</span>
-            </span>
-            <ChevronDown className="hidden xl:block" size={15} />
-          </button>
-          {open && (
-            <div
-              className="ph-dialog-panel absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
-              id="admin-account-menu"
-              onKeyDown={(event) => {
-                if (event.key === "Escape") setOpen(false);
-              }}
-              role="menu"
-            >
-              <Link
-                className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
-                onClick={() => setOpen(false)}
-                role="menuitem"
-                to="/admin/settings"
-              >
-                View profile
-              </Link>
-              <Link
-                className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
-                onClick={() => setOpen(false)}
-                role="menuitem"
-                to="/admin/settings"
-              >
-                Settings
-              </Link>
-              <Link
-                className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-50"
-                onClick={() => setOpen(false)}
-                role="menuitem"
-                to="/"
-              >
-                Return to public site
-              </Link>
-              <button
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
-                onClick={logout}
-                role="menuitem"
-                type="button"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 }
 

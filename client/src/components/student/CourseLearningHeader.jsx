@@ -22,16 +22,16 @@ export default function CourseLearningHeader({ course, completedCount, lessonCou
     : 0;
 
   return (
-    <header className="ph-page-enter ph-surface-soft rounded-2xl p-6">
+    <header className="ph-page-enter ph-surface rounded-2xl p-5 sm:p-6">
       <p className="text-sm font-extrabold uppercase tracking-wider text-emerald-700">
         {course.course_code}
       </p>
-      <div className="mt-2 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-        <div>
-          <h1 className="text-3xl font-black text-slate-950">{course.title}</h1>
+      <div className="mt-2 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{course.title}</h1>
           <p className="mt-2 text-slate-600">Instructor: {course.teacher_name}</p>
         </div>
-        <div className="w-full max-w-sm rounded-xl bg-emerald-50 p-4 sm:min-w-72">
+        <div className="w-full shrink-0 rounded-xl bg-slate-50 p-4 md:w-72">
           <div className="flex items-baseline justify-between gap-4">
             <p className="text-sm font-bold text-emerald-900">
               {completedCount} of {lessonCount} lessons completed

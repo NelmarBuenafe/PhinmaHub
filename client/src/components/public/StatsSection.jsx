@@ -9,13 +9,13 @@ function StatsSection() {
   return (
     <section aria-labelledby="stats-title" className="bg-white">
       <div className="mx-auto max-w-7xl px-5 py-9 sm:px-6 lg:px-8">
-        <div className="ph-card-enter ph-surface flex flex-col gap-6 rounded-2xl p-6 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-6 border-b border-slate-100 pb-8 lg:flex-row lg:items-center">
           <div className="lg:w-48">
             <h2 className="font-black text-slate-950" id="stats-title">
               Built for learning
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Real workflows already available in PhinmaHub.
+              One place for every step of your learning.
             </p>
           </div>
           <dl className="grid flex-1 grid-cols-2 gap-5 sm:grid-cols-4">

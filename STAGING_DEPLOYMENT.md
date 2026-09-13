@@ -3,6 +3,30 @@
 This runbook stops at a verified staging release. It does not authorize a
 production deployment, production data changes, or `QA_ALLOW_PRODUCTION`.
 
+The current audit results are in
+[PHINMAHUB_STAGING_FINAL_QA_REPORT.md](PHINMAHUB_STAGING_FINAL_QA_REPORT.md).
+Use [STAGING_MANUAL_QA_CHECKLIST.md](STAGING_MANUAL_QA_CHECKLIST.md) to record
+each manual test and sign-off. An unchecked item is not a passed test.
+
+## Current deployment prerequisites
+
+No hosting provider, linked host project, or real staging frontend/backend URL
+was found during this review. The ignored local environments target localhost.
+A successful local production compilation therefore does not make its artifact
+deployable: the existing frontend runtime rejects localhost in production.
+Do not upload the current local `dist`; configure real host environment values
+and rebuild first. Local Supabase credentials refer to the same project on both
+sides, but the project's designation as staging has not been confirmed.
+
+The installed Vite requires Node `^20.19.0 || >=22.12.0` and the installed
+Supabase SDK requires Node `>=22.0.0`. Use a supported Node release satisfying
+both, such as Node 24, for the frontend build and backend service. The local
+checks used Node 24.5.0.
+
+Private `.env.*` files are ignored by Git; only `.env.example` is exempted.
+Store actual deployment values in each host's environment settings. Never add
+real URLs or credentials to tracked templates merely to make a build pass.
+
 ## Deployment topology
 
 - `client/`: React/Vite single-page application deployed to an HTTPS static
@@ -68,7 +92,7 @@ only in an ignored local `server/.env.qa`; do not set
 ### Backend
 
 1. Configure the service root as `server/`.
-2. Install with `npm ci`.
+2. Install with `npm ci --omit=dev`.
 3. Start with `npm start`.
 4. Confirm `GET ${STAGING_BACKEND_ORIGIN}/api/health` returns HTTP 200 and a
    safe PhinmaHub API success message.
@@ -80,7 +104,7 @@ not require `nodemon`.
 ### Frontend
 
 1. Configure the project root as `client/`.
-2. Install with `npm ci`.
+2. Install with `npm ci --include=dev`; Vite and Tailwind are build dependencies.
 3. Build with `npm run build`.
 4. Publish `client/dist` (or `dist` when the host root is `client/`).
 5. Configure the selected host's single SPA fallback so unmatched application
@@ -89,6 +113,56 @@ not require `nodemon`.
    `/admin`, `/auth/callback`, `/privacy-policy`, and `/terms-of-use`.
 
 Add the smallest provider-specific rewrite only after selecting the host.
+
+Do not use `vite preview` as the deployed production server. Publish the static
+build through the selected host. See the
+[Vite deployment guide](https://vite.dev/guide/static-deploy).
+
+## Exact deployment order
+
+1. Select a staging-only static site and a staging-only persistent Node service.
+   Record the branch/revision and confirm neither deployment target is production.
+2. Confirm which Supabase project is intended for staging. Do not reset or
+   automatically migrate it. Run `npm run verify:schema` from `server/` against
+   that project using a private local environment. Stop on an actual schema
+   mismatch; a network failure is not evidence of a mismatch.
+3. Reserve the frontend and backend HTTPS origins through the chosen hosts.
+   Apply the environment relationships above using their actual origins.
+4. Set the backend variables, Node version, root, install command, start command,
+   and `/api/health` health-check path. Deploy only to the staging service.
+5. Configure Supabase and Google as listed below. If a separate staging project
+   has no Admin, arrange the established first-Admin procedure in that confirmed
+   staging project; do not grant roles or create accounts in the existing project
+   as part of this review.
+6. Set frontend build variables, install/build/output settings, and the selected
+   host's SPA fallback. Rebuild and deploy to the staging static site.
+7. Run the manual checklist, recording browser/version, viewport, revision,
+   actual result, and sanitized evidence. Keep tokens, cookies, signed URLs,
+   credentials, and personal account data out of shared screenshots/HAR files.
+8. After any application fix, rerun client lint/build and server tests/schema
+   verification, redeploy staging, and repeat the affected workflow.
+9. Stop at staging sign-off. Production requires a later explicit instruction.
+
+## CORS, cookies, and reverse-proxy checks
+
+The API uses an exact `CLIENT_URL` allow-origin value with credentials enabled.
+Axios sends credentials and the Supabase session's bearer token. CORS controls
+browser response access; authentication and role middleware remain responsible
+for endpoint authorization.
+
+Run staging with `NODE_ENV=production`, including when the host calls the
+environment "staging". This activates the existing CAPTCHA cookie's `HttpOnly`,
+`Secure`, and `SameSite=None` options. Cookie clearing uses matching attributes.
+Verify the browser actually stores and sends it to `/api/auth` during email
+login/registration. Browsers can restrict third-party cookies even with these
+attributes; test the actual domain pairing in Chrome, Edge, and Firefox. Do not
+remove `Secure`, broaden CORS, or disable browser protections as a workaround.
+If cookies are blocked, resolve the hosting/domain topology and repeat QA.
+
+If the selected host forwards client IPs through a reverse proxy, inspect
+staging logs and rate-limit behavior with that host's documented forwarding
+chain. Proxy trust is not configured in the current app; do not automatically
+enable blanket proxy trust before the host topology is known.
 
 ## Supabase and Google dashboard checklist
 
@@ -109,6 +183,73 @@ Add the smallest provider-specific rewrite only after selecting the host.
 - [ ] Confirm `lesson-materials` is private with a 10 MB limit.
 - [ ] Confirm document reads use short-lived server-generated signed URLs and
       document uploads use server-issued signed upload tokens.
+
+The source uses Supabase `signInWithOAuth` with the current frontend origin's
+`/auth/callback`, PKCE URL session detection, and server-side identity/role
+validation. Email registration also supplies `/auth/callback`; Admin invitations
+use `CLIENT_URL` plus `/auth/accept-invite`. No other outbound Auth redirect was
+found. Begin registration/OAuth and complete it in the original browser tab and
+profile so the tab-scoped auth flow and PKCE verifier remain available.
+Separately record the result of an expired link or a link opened in a new tab
+or another profile; do not assume that case succeeds. Confirm Google
+audience/test-user eligibility and email
+delivery/confirmation settings in the dashboards.
+
+Follow the current official
+[Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls)
+and [Google provider setup](https://supabase.com/docs/guides/auth/social-login/auth-google).
+Use the provider dashboard's callback, including any configured custom Auth
+domain; do not substitute the frontend callback for the Google redirect URI.
+
+## Read-only database dashboard verification
+
+Schema verification checks selected table columns and the bucket settings. It
+does not verify live policy or trigger metadata. In the intended staging
+project's SQL Editor, run these read-only queries and retain sanitized results:
+
+```sql
+select schemaname, tablename, rowsecurity
+from pg_tables
+where schemaname = 'public'
+  and tablename in (
+    'profiles', 'student_profiles', 'teacher_profiles', 'courses',
+    'enrollments', 'course_modules', 'lessons', 'lesson_progress',
+    'assignments', 'submissions', 'announcements', 'study_tools',
+    'contact_messages', 'audit_logs', 'course_categories', 'lesson_materials'
+  )
+order by tablename;
+
+select schemaname, tablename, policyname, roles, cmd, qual, with_check
+from pg_policies
+where schemaname in ('public', 'storage')
+order by schemaname, tablename, policyname;
+
+select n.nspname as schema_name, c.relname as table_name,
+       t.tgname as trigger_name, t.tgenabled,
+       pg_get_triggerdef(t.oid) as definition
+from pg_trigger t
+join pg_class c on c.oid = t.tgrelid
+join pg_namespace n on n.oid = c.relnamespace
+where not t.tgisinternal
+  and (
+    (n.nspname = 'public' and c.relname in ('profiles', 'submissions', 'lesson_progress'))
+    or (n.nspname = 'auth' and c.relname = 'users')
+  )
+order by schema_name, table_name, trigger_name;
+
+select id, public, file_size_limit, allowed_mime_types
+from storage.buckets
+where id = 'lesson-materials';
+```
+
+Expect all 16 application tables with RLS enabled; compare their policy
+expressions to the current checked-in schema and existing additive migrations.
+Confirm enabled `protect_profile_security_fields`,
+`protect_submission_grading_fields`, `normalize_lesson_progress`, and
+`on_auth_user_created` triggers and their function definitions/security settings.
+The bucket must be private with a 10485760-byte limit. A service-role read
+success does not prove Student/Teacher isolation; complete the separate
+authorization/API tests in the manual checklist.
 
 ## Isolated QA data
 

@@ -1,11 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import LessonMaterialsManager from "../../components/teacher/LessonMaterialsManager.jsx";
-import TeacherNav from "../../components/teacher/TeacherNav.jsx";
 import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 function lessonDraft(lesson) {
   return {
@@ -18,53 +17,32 @@ function lessonDraft(lesson) {
 
 export default function TeacherLessonMaterialsPage() {
   const { courseId } = useParams();
-  const [modules, setModules] = useState([]);
-  const [selectedLesson, setSelectedLesson] = useState(null);
-  const [draft, setDraft] = useState(null);
-  const [loading, setLoading] = useState(true);
+  return <TeacherLessonMaterialsContent courseId={courseId} key={courseId} />;
+}
+
+function TeacherLessonMaterialsContent({ courseId }) {
+  const moduleQuery = useApiQuery(`/teacher/courses/${courseId}/modules`, { errorMessage: "Unable to load this course's lessons." });
+  const modules = moduleQuery.data?.data || [];
+  const availableLessons = modules.flatMap((module) => module.lessons);
+  const [selection, setSelection] = useState({ id: null, draft: null });
+  const selectedLesson = availableLessons.find((lesson) => lesson.id === selection.id) || availableLessons[0] || null;
+  const draft = selection.id === selectedLesson?.id ? selection.draft : selectedLesson ? lessonDraft(selectedLesson) : null;
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const selectedLessonIdRef = useRef(null);
-
-  const loadLessons = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/teacher/courses/${courseId}/modules`);
-      const nextModules = response.data.data || [];
-      setModules(nextModules);
-
-      const currentId = selectedLessonIdRef.current;
-      const availableLessons = nextModules.flatMap((module) => module.lessons);
-      const nextLesson = availableLessons.find((lesson) => lesson.id === currentId)
-        || availableLessons[0]
-        || null;
-      selectedLessonIdRef.current = nextLesson?.id || null;
-      setSelectedLesson(nextLesson);
-      setDraft(nextLesson ? lessonDraft(nextLesson) : null);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "Unable to load this course's lessons.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId]);
-
-  useDeferredLoad(loadLessons);
+  const loading = moduleQuery.loading;
+  const error = actionError || moduleQuery.error;
+  const loadLessons = moduleQuery.reload;
+  const setModules = (updater) => moduleQuery.update((current) => ({ ...current, data: updater(current.data) }));
 
   function selectLesson(lesson) {
-    selectedLessonIdRef.current = lesson.id;
-    setSelectedLesson(lesson);
-    setDraft(lessonDraft(lesson));
+    setSelection({ id: lesson.id, draft: lessonDraft(lesson) });
     setNotice("");
     setError("");
   }
 
   function updateDraft(key, value) {
-    setDraft((current) => ({ ...current, [key]: value }));
+    setSelection({ id: selectedLesson.id, draft: { ...draft, [key]: value } });
   }
 
   async function saveLesson(event) {
@@ -80,7 +58,6 @@ export default function TeacherLessonMaterialsPage() {
         draft,
       );
       const updated = response.data.data;
-      selectedLessonIdRef.current = updated.id;
       setModules((currentModules) =>
         currentModules.map((module) => ({
           ...module,
@@ -89,8 +66,7 @@ export default function TeacherLessonMaterialsPage() {
           ),
         })),
       );
-      setSelectedLesson(updated);
-      setDraft(lessonDraft(updated));
+      setSelection({ id: updated.id, draft: lessonDraft(updated) });
       setNotice("Lesson details saved.");
     } catch (requestError) {
       setError(
@@ -102,9 +78,9 @@ export default function TeacherLessonMaterialsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <TeacherNav />
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
         <Link
           className="text-sm font-bold text-emerald-800 hover:underline"
           to={`/teacher/courses/${courseId}`}
@@ -120,12 +96,12 @@ export default function TeacherLessonMaterialsPage() {
         </div>
 
         {loading && (
-          <div className="mt-8 rounded-2xl border bg-white p-8">
-            <Loading label="Loading lessons..." />
+          <div className="mt-6 rounded-2xl border bg-white p-8">
+            <Loading variant="lesson" label="Loading lessons..." />
           </div>
         )}
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
             <p>{error}</p>
             <button
               className="mt-3 font-bold underline"
@@ -137,14 +113,14 @@ export default function TeacherLessonMaterialsPage() {
           </div>
         )}
         {!loading && !error && modules.length === 0 && (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
             Create a module and lesson from Manage Course before adding learning
             materials.
           </div>
         )}
 
         {!loading && !error && modules.length > 0 && (
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.5fr)]">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.5fr)]">
             <aside className="max-h-80 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 lg:max-h-[calc(100vh-8rem)]">
               <h2 className="font-black text-slate-950">Course lessons</h2>
               <div className="mt-4 space-y-4">
@@ -234,12 +210,12 @@ export default function TeacherLessonMaterialsPage() {
                     {saving ? "Saving..." : "Save lesson details"}
                   </button>
                 </form>
-                <LessonMaterialsManager lessonId={selectedLesson.id} />
+                <LessonMaterialsManager key={selectedLesson.id} lessonId={selectedLesson.id} />
               </div>
             )}
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

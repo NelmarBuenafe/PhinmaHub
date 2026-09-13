@@ -1,11 +1,11 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   DOCUMENT_ACCEPT,
   MAX_LESSON_MATERIAL_BYTES,
 } from "../../config/lessonMaterials.js";
 import api from "../../services/api.js";
 import { supabase } from "../../services/supabase.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 import { ConfirmationDialog } from "../admin/AdminUI.jsx";
 import Loading from "../common/Loading.jsx";
 
@@ -27,40 +27,17 @@ function readableType(type) {
 }
 
 export default function LessonMaterialsManager({ lessonId }) {
-  const [materials, setMaterials] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [file, setFile] = useState(null);
   const [editing, setEditing] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const loadMaterials = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/teacher/lessons/${lessonId}/materials`);
-      setMaterials(response.data.data || []);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "Unable to load lesson materials.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [lessonId]);
-
-  const loadSelectedLesson = useCallback(() => {
-    setEditing(null);
-    setForm(initialForm);
-    setFile(null);
-    return loadMaterials();
-  }, [loadMaterials]);
-
-  useDeferredLoad(loadSelectedLesson);
+  const { data, loading, error: loadError, reload: loadMaterials } = useApiQuery(`/teacher/lessons/${lessonId}/materials`, { errorMessage: "Unable to load lesson materials." });
+  const materials = data?.data || [];
+  const error = actionError || loadError;
 
   function updateForm(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -238,8 +215,9 @@ export default function LessonMaterialsManager({ lessonId }) {
         </p>
       )}
 
-      {loading && <Loading label="Loading materials..." />}
-      {!loading && materials.length === 0 && (
+      {loading && <Loading variant="courses" label="Loading materials..." />}
+      {loadError && <button className="font-bold underline" onClick={loadMaterials} type="button">Retry materials</button>}
+      {!loading && !loadError && materials.length === 0 && (
         <p className="mt-4 text-sm text-slate-500">No learning materials yet.</p>
       )}
       {!loading && materials.length > 0 && (

@@ -29,18 +29,18 @@ function greeting() {
 function StatCard({ accent = false, icon: Icon, label, title, value }) {
   return (
     <article
-      className={`ph-card-enter ph-surface rounded-2xl p-5 ${accent ? "border-yellow-300 bg-gradient-to-br from-white to-yellow-50/70" : ""}`}
+      className={`ph-card-enter ph-surface rounded-2xl p-5 ${accent ? "border-amber-200 bg-amber-50/30" : ""}`}
     >
       <div className="flex items-center justify-between">
         <span
           className={`grid size-11 place-items-center rounded-xl ${accent ? "bg-yellow-100 text-yellow-800" : "bg-emerald-50 text-emerald-700"}`}
         >
-          <Icon size={21} />
+          <Icon aria-hidden="true" size={21} />
         </span>
         {accent && <StatusBadge value="pending" />}
       </div>
       <p className="mt-5 text-sm font-bold text-slate-500">{title}</p>
-      <p className="mt-1 text-3xl font-black text-slate-950">{value}</p>
+      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-950">{value}</p>
       <p className="mt-1 text-xs text-slate-500">{label}</p>
     </article>
   );
@@ -80,6 +80,7 @@ function AdminPage() {
           </Link>
         }
         description="Here's what needs your attention today."
+        eyebrow="Administration workspace"
         title={`${greeting()}, ${name}`}
       />
       {loading ? (
@@ -126,7 +127,7 @@ function AdminPage() {
               </div>
               {data.applications.length ? (
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[650px] text-left text-sm">
+                  <table className="ph-table min-w-[650px] text-left text-sm">
                     <thead className="border-b text-xs uppercase text-slate-500">
                       <tr>
                         <th className="py-3">Applicant</th>
@@ -202,7 +203,7 @@ function AdminPage() {
                   ].map(([label, path]) => (
                     <Link
                       className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm font-bold hover:border-emerald-500 hover:bg-emerald-50"
-                      key={path}
+                      key={label}
                       to={path}
                     >
                       <Users size={17} />
@@ -225,7 +226,7 @@ function AdminPage() {
             </div>
             {data.courses.length ? (
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[650px] text-left text-sm">
+                <table className="ph-table min-w-[650px] text-left text-sm">
                   <thead className="border-b text-xs uppercase text-slate-500">
                     <tr>
                       <th className="py-3">Code</th>

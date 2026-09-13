@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronDown, ChevronRight, Circle } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 function ModuleProgress({ completedCount, lessonCount }) {
   const progress = lessonCount
@@ -21,7 +21,7 @@ function LessonItem({ lesson, selected, onSelect }) {
       aria-current={selected ? "page" : undefined}
       className={`ph-action mt-1 flex w-full items-start gap-2 rounded-lg px-3 py-2.5 text-left text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
         selected
-          ? "bg-emerald-100 text-emerald-950"
+          ? "border-l-2 border-emerald-700 bg-emerald-50 text-emerald-950"
           : "text-slate-700 hover:bg-slate-100"
       }`}
       onClick={() => onSelect(lesson.id)}
@@ -32,10 +32,10 @@ function LessonItem({ lesson, selected, onSelect }) {
       ) : (
         <Circle aria-hidden="true" className="mt-0.5 shrink-0 text-slate-400" size={17} />
       )}
-      <span>
+      <span className="min-w-0 break-words">
         <span className="block font-bold">{lesson.title}</span>
         <span className="mt-0.5 block text-xs text-slate-500">
-          {completed ? "Completed" : "Not Started"}
+          {completed ? "Completed" : selected ? "Current lesson" : "Not started"}
         </span>
       </span>
     </button>
@@ -49,7 +49,7 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
   ).length;
 
   return (
-    <section className="border-b border-slate-200 py-3 last:border-b-0">
+    <section className="border-b border-slate-100 py-3 last:border-b-0">
       <button
         aria-expanded={expanded}
         className="ph-action flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-600"
@@ -57,10 +57,10 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
         type="button"
       >
         {expanded ? <ChevronDown aria-hidden="true" size={19} /> : <ChevronRight aria-hidden="true" size={19} />}
-        <span>
+        <span className="min-w-0 break-words">
           <span className="block font-bold text-slate-950">{module.title}</span>
           {module.description && (
-            <span className="mt-1 block text-sm text-slate-600">{module.description}</span>
+            <span className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{module.description}</span>
           )}
           <ModuleProgress completedCount={completedCount} lessonCount={module.lessons.length} />
         </span>
@@ -88,25 +88,40 @@ function ModuleSection({ module, selectedLessonId, onSelectLesson }) {
 }
 
 export default function CourseContentSidebar({ modules, selectedLessonId, onSelectLesson }) {
+  const [outlineExpanded, setOutlineExpanded] = useState(false);
+  const outlineId = useId();
+
   return (
-    <aside className="ph-surface rounded-2xl p-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
-      <h2 className="px-2 text-lg font-black text-slate-950">Course Content</h2>
-      {modules.length ? (
-        <div className="mt-3">
-          {modules.map((module) => (
-            <ModuleSection
-              key={module.id}
-              module={module}
-              onSelectLesson={onSelectLesson}
-              selectedLessonId={selectedLessonId}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-          Course content has not been added yet.
-        </p>
-      )}
+    <aside className="ph-surface min-w-0 self-start rounded-2xl p-4 lg:sticky lg:top-[calc(var(--ph-app-header-height)+24px)] lg:max-h-[calc(100dvh-var(--ph-app-header-height)-48px)] lg:overflow-y-auto">
+      <h2 className="hidden px-2 text-base font-bold text-slate-950 lg:block">Course Content</h2>
+      <button
+        aria-controls={outlineId}
+        aria-expanded={outlineExpanded}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-2 text-left font-bold text-slate-950 lg:hidden"
+        onClick={() => setOutlineExpanded((value) => !value)}
+        type="button"
+      >
+        Course Content
+        <ChevronDown aria-hidden="true" className={`transition-transform ${outlineExpanded ? "rotate-180" : ""}`} size={20} />
+      </button>
+      <div className={`${outlineExpanded ? "block" : "hidden"} lg:block`} id={outlineId}>
+        {modules.length ? (
+          <div className="mt-3">
+            {modules.map((module) => (
+              <ModuleSection
+                key={module.id}
+                module={module}
+                onSelectLesson={onSelectLesson}
+                selectedLessonId={selectedLessonId}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+            Course content has not been added yet.
+          </p>
+        )}
+      </div>
     </aside>
   );
 }

@@ -3,6 +3,7 @@ import api from "../services/api.js";
 import { supabase } from "../services/supabase.js";
 import { clearAuthFlow, saveAuthFlow } from "../utils/authFlow.js";
 import { AuthContext } from "./authContext.js";
+import { clientQueryCache } from "../utils/queryCache.js";
 
 const DENIAL_STORAGE_KEY = "phinmahub_access_denied";
 
@@ -16,6 +17,7 @@ export function AuthProvider({ children }) {
   );
 
   const clearAuthState = useCallback(() => {
+    clientQueryCache.clear();
     setSession(null);
     setProfile(null);
     setIdentity(null);
@@ -108,6 +110,7 @@ export function AuthProvider({ children }) {
         } = await supabase.auth.getSession();
         if (!active) return;
 
+        clientQueryCache.setAccount(currentSession?.user?.id);
         setSession(currentSession);
         if (
           currentSession &&
@@ -134,8 +137,12 @@ export function AuthProvider({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!active) return;
+      clientQueryCache.setAccount(nextSession?.user?.id);
       setSession(nextSession);
-      if (event === "SIGNED_OUT") setProfile(null);
+      if (event === "SIGNED_OUT") {
+        clientQueryCache.clear();
+        setProfile(null);
+      }
     });
 
     return () => {
@@ -162,6 +169,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    clientQueryCache.clear();
     try {
       await api.post("/auth/logout");
     } finally {

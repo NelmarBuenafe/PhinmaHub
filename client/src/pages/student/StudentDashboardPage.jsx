@@ -6,13 +6,11 @@ import {
   GraduationCap,
   Megaphone,
 } from "lucide-react";
-import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
-import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useAuth } from "../../contexts/authContext.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const summaryCards = [
   { key: "enrolledCourses", label: "Enrolled Courses", Icon: BookOpen },
@@ -53,37 +51,42 @@ function statusLabel(status) {
 }
 
 export default function StudentDashboardPage() {
-  const [dashboard, setDashboard] = useState(null);
-  const [error, setError] = useState("");
-
-  const loadDashboard = useCallback(async () => {
-    try {
-      const response = await api.get("/student/dashboard");
-      setDashboard(response.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.status >= 500
-          ? "We couldn't load your dashboard."
-          : requestError.response?.data?.message ||
-              "We couldn't load your dashboard.",
-      );
-    }
-  }, []);
-
-  useDeferredLoad(loadDashboard);
+  const { profile } = useAuth();
+  const { data, error, reload: loadDashboard } = useApiQuery("/student/dashboard", { errorMessage: "We couldn't load your dashboard." });
+  const dashboard = data?.data;
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <StudentNav />
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
+        <PageHeader
+          action={
+            <div className="flex flex-wrap gap-3">
+              <Link
+                className="ph-action inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-emerald-600 hover:text-emerald-800"
+                to="/student/courses"
+              >
+                View my courses <ArrowRight aria-hidden="true" size={17} />
+              </Link>
+              <Link
+                className="ph-action inline-flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-white"
+                to="/student/join-course"
+              >
+                Join a course
+              </Link>
+            </div>
+          }
+          description="Continue learning and keep track of your progress."
+          eyebrow="Student workspace"
+          title={`Welcome back, ${dashboard?.student.firstName || profile?.first_name || "Student"}`}
+        />
         {!dashboard && !error && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8">
-            <Loading label="Loading your dashboard..." />
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8">
+            <Loading variant="dashboard" label="Loading your dashboard..." />
           </div>
         )}
         {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 ph-error p-6">
             <p>{error}</p>
             <button
               className="mt-3 font-bold underline"
@@ -96,51 +99,31 @@ export default function StudentDashboardPage() {
         )}
         {dashboard && (
           <>
-            <PageHeader
-              action={
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    className="ph-action inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white shadow-sm hover:bg-emerald-800"
-                    to="/student/courses"
-                  >
-                    View my courses <ArrowRight aria-hidden="true" size={17} />
-                  </Link>
-                  <Link
-                    className="ph-action inline-flex items-center rounded-xl border border-emerald-700 px-4 py-3 font-bold text-emerald-800 hover:bg-emerald-50"
-                    to="/student/join-course"
-                  >
-                    Join a course
-                  </Link>
-                </div>
-              }
-              description="Continue learning and keep track of your progress."
-              eyebrow="Student workspace"
-              title={`Welcome back, ${dashboard.student.firstName}`}
-            />
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+            <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4">
               {summaryCards.map(({ key, label, Icon, suffix }, index) => (
                 <article
-                  className="ph-card-enter ph-surface rounded-2xl p-5"
+                  className="ph-card-enter ph-surface ph-metric"
                   key={key}
                   style={{ "--ph-delay": `${80 + index * 45}ms` }}
                 >
                   <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
                     <Icon aria-hidden="true" size={21} />
                   </span>
-                  <p className="mt-4 text-3xl font-black text-slate-950">
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
                     {dashboard.summary[key]}
                     {suffix}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-600">
+                  <p className="text-xs font-semibold text-slate-600">
                     {label}
                   </p>
                 </article>
               ))}
             </div>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <section className="ph-surface-soft ph-card-enter rounded-2xl p-6 [--ph-delay:220ms]">
+            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <section className="ph-welcome ph-card-enter relative rounded-2xl p-6">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-black text-slate-950">
                     Continue Learning
@@ -148,7 +131,7 @@ export default function StudentDashboardPage() {
                   <BookOpen className="text-emerald-700" size={22} />
                 </div>
                 {dashboard.continueLearning ? (
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
                       {dashboard.continueLearning.course_code}
                     </p>
@@ -168,16 +151,20 @@ export default function StudentDashboardPage() {
                       </span>
                     </div>
                     <Link
-                      className="ph-action mt-6 inline-flex items-center gap-2 rounded-xl border border-emerald-700 px-4 py-2.5 font-bold text-emerald-800 hover:bg-emerald-50"
+                      className="ph-action mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-sm hover:bg-emerald-800"
                       to={`/student/courses/${dashboard.continueLearning.id}`}
                     >
                       Continue learning <ArrowRight size={16} />
                     </Link>
                   </div>
                 ) : (
-                  <p className="mt-6 text-slate-600">
-                    You are not enrolled in any courses yet.
-                  </p>
+                  <div className="mt-6">
+                    <p className="font-semibold text-slate-800">Your learning starts with a course.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">Enter the join code from your teacher to get started.</p>
+                    <Link className="ph-action mt-5 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800" to="/student/join-course">
+                      Join a course
+                    </Link>
+                  </div>
                 )}
               </section>
 
@@ -202,7 +189,7 @@ export default function StudentDashboardPage() {
                         </p>
                         <div className="mt-2 flex justify-between gap-3 text-xs text-slate-500">
                           <span>Due {formatDate(assignment.due_at)}</span>
-                          <span className="capitalize">{statusLabel(assignment.submission_status)}</span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold capitalize text-slate-700">{statusLabel(assignment.submission_status)}</span>
                         </div>
                       </Link>
                     ))}
@@ -219,7 +206,7 @@ export default function StudentDashboardPage() {
               </section>
             </div>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <section>
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-2xl font-black text-slate-950">My Courses</h2>
@@ -230,7 +217,7 @@ export default function StudentDashboardPage() {
                 {dashboard.courses.length ? (
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {dashboard.courses.slice(0, 4).map((course) => (
-                      <article className="ph-interactive-card rounded-2xl p-5" key={course.id}>
+                      <article className="ph-interactive-card ph-course-card" key={course.id}>
                         <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">{course.course_code}</p>
                         <h3 className="mt-2 text-lg font-black text-slate-950">{course.title}</h3>
                         <p className="mt-2 text-sm text-slate-600">Instructor: {course.teacher_name}</p>
@@ -240,7 +227,7 @@ export default function StudentDashboardPage() {
                         </div>
                         <p className="mt-2 text-xs text-slate-500">{course.completed_lessons} / {course.total_lessons} lessons</p>
                         <Link
-                          className="mt-4 inline-block text-sm font-bold text-emerald-800 hover:underline"
+                          className="mt-auto inline-block self-start text-sm font-bold text-emerald-800 hover:underline"
                           to={`/student/courses/${course.id}`}
                         >
                           Open course
@@ -265,6 +252,7 @@ export default function StudentDashboardPage() {
                         <p className="font-bold text-slate-950">{announcement.title}</p>
                         <p className="mt-1 line-clamp-2 text-sm text-slate-600">{announcement.body}</p>
                         <p className="mt-2 text-xs font-semibold text-emerald-700">{announcement.course_code || "PhinmaHub"}</p>
+                        {announcement.published_at && <time className="mt-1 block text-xs text-slate-500" dateTime={announcement.published_at}>{formatDate(announcement.published_at)}</time>}
                       </article>
                     ))}
                   </div>
@@ -279,6 +267,6 @@ export default function StudentDashboardPage() {
           </>
         )}
       </section>
-    </main>
+    </div>
   );
 }

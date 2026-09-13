@@ -352,7 +352,7 @@ function UsersPage({ presetRole = "" }) {
             role="region"
             tabIndex="0"
           >
-            <table className="w-full min-w-[800px] text-left text-sm">
+            <table className="ph-table min-w-[800px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
                   {[

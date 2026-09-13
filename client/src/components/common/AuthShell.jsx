@@ -10,10 +10,10 @@ function AuthShell({
       <div aria-hidden="true" className="ph-float absolute -left-24 top-20 size-72 rounded-full bg-emerald-100/70 blur-sm" />
       <div
         aria-hidden="true"
-        className="ph-float absolute -right-24 bottom-10 size-72 rounded-full bg-yellow-100/70 blur-sm [animation-delay:-3s]"
+        className="ph-float absolute -right-24 bottom-10 size-72 rounded-full bg-emerald-100/40 blur-3xl [animation-delay:-3s]"
       />
 
-      <section className="ph-page-enter relative w-full max-w-md rounded-3xl border border-white/80 bg-white/95 p-7 shadow-2xl shadow-slate-900/10 backdrop-blur sm:p-9">
+      <section className="ph-page-enter relative w-full max-w-md ph-elevated rounded-2xl border border-slate-200 bg-white p-7 sm:p-9">
         <p className="text-xs font-bold tracking-[0.22em] text-emerald-700">
           {eyebrow}
         </p>

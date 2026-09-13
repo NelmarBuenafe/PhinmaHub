@@ -1,13 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
-import StudentNav from "../../components/student/StudentNav.jsx";
-import api from "../../services/api.js";
-import { useDeferredLoad } from "../../utils/useDeferredLoad.js";
+import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const filters = ["all", "pending", "submitted", "graded"];
+const emptyAssignments = [];
 
 function formatDate(value) {
   if (!value) return "No due date";
@@ -23,30 +22,9 @@ function displayStatus(status) {
 }
 
 export default function StudentAssignmentsPage() {
-  const [assignments, setAssignments] = useState([]);
   const [filter, setFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadAssignments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/student/assignments");
-      setAssignments(response.data.data);
-      setError("");
-    } catch (requestError) {
-      setError(
-        requestError.response?.status >= 500
-          ? "We couldn't load your assignments."
-          : requestError.response?.data?.message ||
-              "We couldn't load your assignments.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useDeferredLoad(loadAssignments);
+  const { data: response, error, loading, reload: loadAssignments } = useApiQuery("/student/assignments", { errorMessage: "We couldn't load your assignments." });
+  const assignments = response?.data || emptyAssignments;
 
   const visibleAssignments = useMemo(
     () =>
@@ -66,9 +44,9 @@ export default function StudentAssignmentsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <StudentNav />
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="min-w-0">
+
+      <section className="ph-role-page">
         <PageHeader
           description="Review pending work, submissions, grades, and feedback."
           eyebrow="Student workspace"
@@ -92,9 +70,9 @@ export default function StudentAssignmentsPage() {
             ))}
           </div>
         </div>
-        {loading && <div className="mt-8 rounded-2xl border bg-white p-8"><Loading label="Loading assignments..." /></div>}
+        {loading && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="assignments" label="Loading assignments..." /></div>}
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="mt-6 ph-error p-6">
             <p>{error}</p>
             <button className="mt-3 font-bold underline" onClick={loadAssignments} type="button">
               Retry
@@ -102,12 +80,12 @@ export default function StudentAssignmentsPage() {
           </div>
         )}
         {!loading && !error && !visibleAssignments.length && (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
             {filter === "pending" ? "You're all caught up." : "No assignments in this section."}
           </div>
         )}
         {!loading && !error && visibleAssignments.length > 0 && (
-          <div className="mt-8 grid gap-4">
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
             {visibleAssignments.map((assignment) => (
               <article className="ph-interactive-card rounded-2xl p-6" key={assignment.id}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -146,6 +124,6 @@ export default function StudentAssignmentsPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

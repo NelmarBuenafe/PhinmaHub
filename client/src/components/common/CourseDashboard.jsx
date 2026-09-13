@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext.js";
 import { useCourseList } from "../../utils/useCourseList.js";
 import Loading from "./Loading.jsx";
+import AccountMenu from "./AccountMenu.jsx";
 
 function CourseDashboard({ role }) {
   const normalizedRole = role.toLowerCase();
@@ -21,22 +22,21 @@ function CourseDashboard({ role }) {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+      <header className="border-b border-slate-200 bg-white py-4">
+        <div className="ph-app-container flex items-center justify-between gap-4">
           <div>
             <p className="text-lg font-bold text-emerald-700">PhinmaHub</p>
             <p className="text-sm text-slate-500">{role} workspace</p>
           </div>
-          <button
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-            onClick={signOut}
-            type="button"
-          >
-            Sign out
-          </button>
+          <AccountMenu
+            profile={profile}
+            profileRoute={normalizedRole === "admin" ? "/admin/settings" : `/${normalizedRole}/profile`}
+            role={role}
+            onSignOut={signOut}
+          />
         </div>
       </header>
-      <section className="mx-auto max-w-6xl px-6 py-12">
+      <section className="ph-app-container py-12">
         {location.state?.roleNotice && (
           <p
             className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-yellow-900"
@@ -74,7 +74,7 @@ function CourseDashboard({ role }) {
           </p>
         )}
         {!loading && !error && courses.length > 0 && (
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {courses.map((course) => {
               const lessonCount = course.lesson_count || 0;
               const completedCount = course.completed_lesson_count || 0;

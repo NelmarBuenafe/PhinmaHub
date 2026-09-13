@@ -51,7 +51,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-950 text-slate-300 shadow-2xl transition-transform duration-200 motion-reduce:transition-none lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-950 text-slate-300 transition-transform duration-200 motion-reduce:transition-none lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-20 items-center justify-between border-b border-slate-800 px-5">
           <Link
@@ -85,7 +85,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
           {links.map(([label, path, Icon, badge, child]) => (
             <NavLink
               className={({ isActive }) =>
-                `ph-action group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${child ? "ml-7" : ""} ${isActive || (path !== "/admin" && location.pathname.startsWith(`${path}/`)) ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/30" : "hover:bg-slate-800 hover:text-white"}`
+                `group flex transition-colors items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${child ? "ml-7" : ""} ${isActive || (path !== "/admin" && location.pathname.startsWith(`${path}/`)) ? "bg-emerald-900/80 text-emerald-50 ring-1 ring-inset ring-emerald-700" : "hover:bg-slate-800 hover:text-white"}`
               }
               end={path === "/admin"}
               key={path}
@@ -123,7 +123,7 @@ function AdminSidebar({ badges = {}, onClose, open }) {
               <p className="truncate text-sm font-bold text-white">
                 {displayName}
               </p>
-              <p className="text-xs text-slate-500">Administrator</p>
+              <p className="text-xs text-slate-400">Administrator</p>
             </div>
           </div>
           <Link

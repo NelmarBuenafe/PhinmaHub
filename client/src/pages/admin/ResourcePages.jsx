@@ -414,7 +414,7 @@ export function StudyToolsPage() {
             role="region"
             tabIndex="0"
           >
-            <table className="w-full min-w-[700px] text-left text-sm">
+            <table className="ph-table min-w-[700px] text-left text-sm">
               <thead className="bg-slate-50">
                 <tr>
                   {["Title", "Type", "URL", "Status", "Creator", "Actions"].map(
@@ -589,7 +589,7 @@ export function AuditLogsPage() {
             role="region"
             tabIndex="0"
           >
-            <table className="w-full min-w-[750px] text-left text-sm">
+            <table className="ph-table min-w-[750px] text-left text-sm">
               <thead className="bg-slate-50">
                 <tr>
                   {[

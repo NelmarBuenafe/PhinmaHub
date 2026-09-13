@@ -4,6 +4,8 @@ import Loading from "../components/common/Loading.jsx";
 import ProtectedRoute from "../components/common/ProtectedRoute.jsx";
 import RequireSession from "../components/common/RequireSession.jsx";
 import AdminLayout from "../components/admin/AdminLayout.jsx";
+import AuthenticatedShell from "../components/common/AuthenticatedShell.jsx";
+import { workspaceRouteImports } from "../utils/workspaceRoutes.js";
 
 const AdminPage = lazy(() => import("../pages/admin/AdminPage.jsx"));
 const AcceptInvitePage = lazy(
@@ -67,41 +69,29 @@ const SchoolEmailRequiredPage = lazy(
 const UnauthorizedPage = lazy(
   () => import("../pages/public/UnauthorizedPage.jsx"),
 );
-const StudentPage = lazy(() => import("../pages/student/StudentPage.jsx"));
-const StudentCoursesPage = lazy(
-  () => import("../pages/student/StudentCoursesPage.jsx"),
-);
+const StudentPage = lazy(workspaceRouteImports.studentDashboard);
+const StudentCoursesPage = lazy(workspaceRouteImports.studentCourses);
 const StudentJoinCoursePage = lazy(
   () => import("../pages/student/StudentJoinCoursePage.jsx"),
 );
-const StudentAssignmentsPage = lazy(
-  () => import("../pages/student/StudentAssignmentsPage.jsx"),
-);
+const StudentAssignmentsPage = lazy(workspaceRouteImports.studentAssignments);
 const StudentAnnouncementsPage = lazy(
   () => import("../pages/student/StudentAnnouncementsPage.jsx"),
 );
-const StudentProfilePage = lazy(
-  () => import("../pages/student/StudentProfilePage.jsx"),
-);
+const StudentProfilePage = lazy(workspaceRouteImports.studentProfile);
 const StudentCoursePage = lazy(
   () => import("../pages/student/StudentCoursePage.jsx"),
 );
-const TeacherPage = lazy(() => import("../pages/teacher/TeacherPage.jsx"));
-const TeacherCourses = lazy(
-  () => import("../pages/teacher/TeacherCourses.jsx"),
-);
-const CreateCoursePage = lazy(
-  () => import("../pages/teacher/CreateCoursePage.jsx"),
-);
+const TeacherPage = lazy(workspaceRouteImports.teacherDashboard);
+const TeacherCourses = lazy(workspaceRouteImports.teacherCourses);
+const CreateCoursePage = lazy(workspaceRouteImports.teacherCreateCourse);
 const TeacherCourseOverviewPage = lazy(
   () => import("../pages/teacher/TeacherCourseOverviewPage.jsx"),
 );
 const TeacherLessonMaterialsPage = lazy(
   () => import("../pages/teacher/TeacherLessonMaterialsPage.jsx"),
 );
-const TeacherProfilePage = lazy(
-  () => import("../pages/teacher/TeacherProfilePage.jsx"),
-);
+const TeacherProfilePage = lazy(workspaceRouteImports.teacherProfile);
 
 function AppRoutes() {
   return (
@@ -181,110 +171,23 @@ function AppRoutes() {
           <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
         </Route>
-        <Route
-          path="/teacher"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <TeacherPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/courses"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <TeacherCourses />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/profile"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <TeacherProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/courses/create"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <CreateCoursePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/courses/:courseId"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <TeacherCourseOverviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/courses/:courseId/materials"
-          element={
-            <ProtectedRoute requiredRole="teacher">
-              <TeacherLessonMaterialsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/courses"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentCoursesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/join-course"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentJoinCoursePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/assignments"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentAssignmentsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/announcements"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentAnnouncementsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/profile"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/courses/:courseId"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <StudentCoursePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/teacher" element={<ProtectedRoute requiredRole="teacher"><AuthenticatedShell role="Teacher" /></ProtectedRoute>}>
+          <Route index element={<TeacherPage />} />
+          <Route path="courses" element={<TeacherCourses />} />
+          <Route path="profile" element={<TeacherProfilePage />} />
+          <Route path="courses/create" element={<CreateCoursePage />} />
+          <Route path="courses/:courseId" element={<TeacherCourseOverviewPage />} />
+          <Route path="courses/:courseId/materials" element={<TeacherLessonMaterialsPage />} />
+        </Route>
+        <Route path="/student" element={<ProtectedRoute requiredRole="student"><AuthenticatedShell role="Student" /></ProtectedRoute>}>
+          <Route index element={<StudentPage />} />
+          <Route path="courses" element={<StudentCoursesPage />} />
+          <Route path="join-course" element={<StudentJoinCoursePage />} />
+          <Route path="assignments" element={<StudentAssignmentsPage />} />
+          <Route path="announcements" element={<StudentAnnouncementsPage />} />
+          <Route path="profile" element={<StudentProfilePage />} />
+          <Route path="courses/:courseId" element={<StudentCoursePage />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

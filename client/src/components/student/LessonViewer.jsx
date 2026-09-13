@@ -9,6 +9,8 @@ export default function LessonViewer({
   completing,
   hasNext,
   hasPrevious,
+  nextLesson,
+  previousLesson,
   onMaterialError,
   readOnly = false,
 }) {
@@ -23,12 +25,12 @@ export default function LessonViewer({
   const completed = lesson.completion?.isCompleted === true;
 
   return (
-    <section className="ph-page-enter ph-surface rounded-2xl p-6 sm:p-8">
+    <section className="ph-surface min-w-0 rounded-2xl p-5 sm:p-6">
       <p className="text-sm font-extrabold uppercase tracking-wider text-emerald-700">
         Lesson
       </p>
       <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-2xl font-black text-slate-950">{lesson.title}</h2>
+        <h2 className="min-w-0 flex-1 break-words text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{lesson.title}</h2>
         {completed ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-800">
             <CheckCircle2 aria-hidden="true" size={17} /> Completed
@@ -41,7 +43,7 @@ export default function LessonViewer({
       </div>
 
       {lesson.learning_objectives && (
-        <section className="mt-6 rounded-xl border-l-4 border-emerald-500 bg-emerald-50/60 p-4">
+        <section className="ph-reading mt-7 rounded-xl border-l-2 border-emerald-600 bg-emerald-50/50 p-5">
           <h3 className="font-bold text-slate-900">Learning objectives</h3>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
             {lesson.learning_objectives}
@@ -49,10 +51,10 @@ export default function LessonViewer({
         </section>
       )}
 
-      <section className="mt-7 max-w-3xl">
+      <section className="ph-reading mt-8">
         <h3 className="text-lg font-black text-slate-950">Lesson Content</h3>
         {lesson.content ? (
-          <p className="mt-3 whitespace-pre-wrap text-[1.02rem] leading-8 text-slate-700">
+          <p className="mt-4 whitespace-pre-wrap">
             {lesson.content}
           </p>
         ) : (
@@ -67,7 +69,7 @@ export default function LessonViewer({
         onError={onMaterialError}
       />
 
-      <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <button
           className="ph-action inline-flex items-center justify-center gap-1 rounded-xl border
             border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50
@@ -76,7 +78,11 @@ export default function LessonViewer({
           onClick={onPrevious}
           type="button"
         >
-          <ChevronLeft aria-hidden="true" size={18} /> Previous Lesson
+          <ChevronLeft aria-hidden="true" className="shrink-0" size={18} />
+          <span className="min-w-0 text-left">
+            <span className="block text-sm">Previous lesson</span>
+            {previousLesson && <span className="mt-1 block max-w-48 truncate text-xs font-normal">{previousLesson.title}</span>}
+          </span>
         </button>
 
         {!completed && !readOnly && (
@@ -86,7 +92,7 @@ export default function LessonViewer({
             onClick={onComplete}
             type="button"
           >
-            {completing ? "Marking complete..." : "Mark as Complete"}
+            {completing ? "Completing..." : "Mark as Complete"}
           </button>
         )}
         {readOnly && !completed && (
@@ -103,7 +109,11 @@ export default function LessonViewer({
           onClick={onNext}
           type="button"
         >
-          Next Lesson <ChevronRight aria-hidden="true" size={18} />
+          <span className="min-w-0 text-right">
+            <span className="block text-sm">Next lesson</span>
+            {nextLesson && <span className="mt-1 block max-w-48 truncate text-xs font-normal">{nextLesson.title}</span>}
+          </span>
+          <ChevronRight aria-hidden="true" className="shrink-0" size={18} />
         </button>
       </div>
     </section>
