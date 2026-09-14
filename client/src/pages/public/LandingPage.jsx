@@ -10,7 +10,7 @@ import StudyToolsPreview from "../../components/public/StudyToolsPreview.jsx";
 
 function LandingPage() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
+    <div className="ph-public-page min-h-screen overflow-x-hidden bg-white text-slate-900">
       <PublicNavbar />
       <main>
         <HeroSection />

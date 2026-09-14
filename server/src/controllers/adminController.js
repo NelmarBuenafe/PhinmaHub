@@ -7,6 +7,7 @@ import {
   teacherRegistrationSchema,
 } from "./registrationController.js";
 import { isInstitutionalEmail } from "../utils/auth.js";
+import { createAnnouncementNotifications } from "../services/notificationService.js";
 import {
   pageRange,
   paginationSchema,
@@ -861,6 +862,14 @@ export async function createAnnouncement(req, res, next) {
     .select()
     .single();
   if (error) return fail(next, "Unable to create announcement");
+  if (body.data.publishNow) {
+    try {
+      await createAnnouncementNotifications(data);
+    } catch (cause) {
+      await supabase.from("announcements").delete().eq("id", data.id);
+      return fail(next, cause?.code === "42P01" ? "Notifications are not enabled yet. Run the phase9-notifications.sql migration." : "Unable to create announcement notifications", 503, cause);
+    }
+  }
   await audit(
     req.auth.user.id,
     "announcement_created",

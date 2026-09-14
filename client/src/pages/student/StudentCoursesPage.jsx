@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
@@ -22,8 +22,6 @@ function ProgressBar({ value }) {
 
 export default function StudentCoursesPage() {
   const { courses, error, loading, reload } = useCourseList("/student/courses");
-  const location = useLocation();
-  const successMessage = location.state?.success;
 
   return (
     <div className="min-w-0">
@@ -42,11 +40,6 @@ export default function StudentCoursesPage() {
           eyebrow="Student workspace"
           title="My Courses"
         />
-        {successMessage && (
-          <p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
-            {successMessage}
-          </p>
-        )}
         {loading && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="courses" label="Loading your courses..." /></div>}
         {error && (
           <div className="mt-6 ph-error p-6">

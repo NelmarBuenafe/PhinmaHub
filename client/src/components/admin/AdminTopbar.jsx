@@ -17,7 +17,6 @@ const secondaryLinks = [
   { to: "/admin/study-tools", label: "Study Tools" },
   { to: "/admin/messages", label: "Contact Messages" },
   { to: "/admin/audit-logs", label: "Audit Logs" },
-  { to: "/admin/settings", label: "Settings" },
 ];
 
 const titles = {
@@ -32,7 +31,6 @@ const titles = {
   "/admin/study-tools": "Study Tools",
   "/admin/messages": "Contact Messages",
   "/admin/audit-logs": "Audit Logs",
-  "/admin/settings": "Settings",
 };
 
 function AdminTopbar() {

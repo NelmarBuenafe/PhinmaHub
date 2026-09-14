@@ -181,6 +181,10 @@ export function AuthProvider({ children }) {
     }
   }, [clearAuthState]);
 
+  const updateProfile = useCallback((nextProfile) => {
+    setProfile(nextProfile);
+  }, []);
+
   const value = useMemo(
     () => ({
       accessDenied,
@@ -190,6 +194,7 @@ export function AuthProvider({ children }) {
       profile,
       session,
       signOut,
+      updateProfile,
       validateSession,
       validateIdentity,
     }),
@@ -201,6 +206,7 @@ export function AuthProvider({ children }) {
       profile,
       session,
       signOut,
+      updateProfile,
       validateIdentity,
       validateSession,
     ],

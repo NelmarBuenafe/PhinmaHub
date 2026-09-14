@@ -46,9 +46,10 @@ export default function RoleNav({ links, role, moreLinks = [], onSignOut }) {
           <NotificationMenu role={role} />
           <AccountMenu
             profile={profile}
-            profileRoute={role === "Admin" ? "/admin/settings" : `/${rolePath}/profile`}
+            profileRoute={role === "Admin" ? "/admin/profile" : `/${rolePath}/profile`}
             role={role}
             onSignOut={onSignOut || signOut}
+            settingsRoute={`/${rolePath}/settings`}
           />
           <HeaderDropdown className="lg:hidden" label={`${role} navigation menu`} buttonContent={<Menu aria-hidden="true" size={21} />}>
             {({ close }) => (

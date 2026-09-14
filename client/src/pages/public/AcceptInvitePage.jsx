@@ -7,6 +7,7 @@ import { useAuth } from "../../contexts/authContext.js";
 import api from "../../services/api.js";
 import { supabase } from "../../services/supabase.js";
 import { getFriendlyAuthError } from "../../utils/auth.js";
+import { useToast } from "../../contexts/toastStore.js";
 
 function AcceptInvitePage() {
   const { loading, session, validateSession } = useAuth();
@@ -15,6 +16,7 @@ function AcceptInvitePage() {
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
   if (loading) {
     return (
@@ -55,14 +57,12 @@ function AcceptInvitePage() {
 
       const activation = await api.post("/auth/registration/activate");
       await validateSession();
+      toast.success("Account activated successfully.");
       navigate(activation.data.destination, { replace: true });
     } catch (requestError) {
-      setError(
-        getFriendlyAuthError(
-          requestError,
-          requestError.message || "The invitation could not be completed.",
-        ),
-      );
+      const message = getFriendlyAuthError(requestError, requestError.message || "The invitation could not be completed.");
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

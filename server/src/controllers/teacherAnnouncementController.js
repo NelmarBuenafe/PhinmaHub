@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { supabase } from "../config/supabase.js";
+import { createAnnouncementNotifications } from "../services/notificationService.js";
 
 const uuidSchema = z.string().uuid();
 export const teacherAnnouncementSchema = z.object({
@@ -17,7 +18,8 @@ function validationError(response, parsed) {
 
 function unexpected(next, message, cause) {
   const error = new Error(message, { cause });
-  error.statusCode = cause?.statusCode || cause?.status;
+  error.statusCode = cause?.code === "42P01" ? 503 : cause?.statusCode || cause?.status;
+  if (cause?.code === "42P01") error.message = "Notifications are not enabled yet. Run the phase9-notifications.sql migration.";
   return next(error);
 }
 
@@ -91,6 +93,14 @@ export async function createTeacherAnnouncement(request, response, next) {
       .select(fields)
       .single();
     if (error) throw error;
+    if (values.data.isPublished) {
+      try {
+        await createAnnouncementNotifications({ ...data, author_id: request.auth.user.id });
+      } catch (cause) {
+        await supabase.from("announcements").delete().eq("id", data.id);
+        throw cause;
+      }
+    }
     return response.status(201).json({ success: true, data, message: "Announcement created." });
   } catch (cause) {
     return unexpected(next, "Unable to create announcement", cause);
@@ -117,6 +127,14 @@ export async function updateTeacherAnnouncement(request, response, next) {
       .select(fields)
       .single();
     if (error) throw error;
+    if (!access.announcement.published_at && values.data.isPublished) {
+      try {
+        await createAnnouncementNotifications({ ...data, author_id: request.auth.user.id });
+      } catch (cause) {
+        await supabase.from("announcements").update({ published_at: null }).eq("id", data.id);
+        throw cause;
+      }
+    }
     return response.json({ success: true, data, message: "Announcement updated." });
   } catch (cause) {
     return unexpected(next, "Unable to update announcement", cause);

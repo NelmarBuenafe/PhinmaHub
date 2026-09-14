@@ -1,4 +1,4 @@
-import { BookOpen, FileText, PlusCircle, Users } from "lucide-react";
+import { BookOpen, Eye, FileText, PlusCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
@@ -8,8 +8,8 @@ import { CourseCards } from "./TeacherCourses.jsx";
 
 const cards = [
   { key: "totalCourses", label: "Total Courses", Icon: BookOpen },
-  { key: "publishedCourses", label: "Published Courses", Icon: FileText },
-  { key: "draftCourses", label: "Draft Courses", Icon: FileText },
+  { key: "publishedCourses", label: "Published", Icon: Eye },
+  { key: "draftCourses", label: "Draft", Icon: FileText },
   { key: "totalStudents", label: "Total Students", Icon: Users },
 ];
 
@@ -34,7 +34,7 @@ export default function TeacherPage() {
               <PlusCircle aria-hidden="true" size={18} /> Create Course
             </Link>
           }
-          description="Manage your courses and review Student activity."
+          description="Manage your courses and review student activity."
           eyebrow="Teacher workspace"
           title={`Welcome back, ${name}`}
         />
@@ -57,7 +57,7 @@ export default function TeacherPage() {
         )}
         {dashboard && (
           <>
-            <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
               {cards.map(({ key, label, Icon }, index) => (
                 <article
                   className="ph-card-enter ph-surface ph-metric"
@@ -67,22 +67,18 @@ export default function TeacherPage() {
                   <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
                     <Icon aria-hidden="true" size={21} />
                   </span>
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
-                    {dashboard.summary[key]}
-                  </p>
-                  <p className="text-xs font-semibold text-slate-600">
-                    {label}
-                  </p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{dashboard.summary[key]}</p>
+                  <p className="text-sm font-medium text-slate-600">{label}</p>
                 </article>
               ))}
             </div>
             <div className="mt-8 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-black text-slate-950">My Courses</h2>
+              <h2 className="text-2xl font-bold text-slate-950">My Courses</h2>
               <Link
                 className="text-sm font-bold text-emerald-800 hover:underline"
                 to="/teacher/courses"
               >
-                View all courses
+                View all courses →
               </Link>
             </div>
             <div className="mt-5">

@@ -7,7 +7,6 @@ import {
   LogOut,
   Mail,
   Megaphone,
-  Settings,
   Users,
   Wrench,
   X,
@@ -26,7 +25,6 @@ const links = [
   ["Study Tools", "/admin/study-tools", Wrench],
   ["Contact Messages", "/admin/messages", Mail, "messages"],
   ["Audit Logs", "/admin/audit-logs", FileClock],
-  ["Settings", "/admin/settings", Settings],
 ];
 
 function AdminSidebar({ badges = {}, onClose, open }) {

@@ -1,5 +1,6 @@
+import { FolderOpen } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
@@ -14,6 +15,8 @@ import {
 import { emptyAssignment } from "../../components/teacher/teacherCourseOverviewConstants.js";
 import api from "../../services/api.js";
 import { useApiQuery } from "../../utils/useApiQuery.js";
+import { useToast } from "../../contexts/toastStore.js";
+import { actionErrorMessage } from "../../utils/actionFeedback.js";
 
 const tabs = ["Overview", "Modules", "Assignments", "Students", "Announcements"];
 
@@ -34,10 +37,9 @@ function Alert({ children, error = false }) {
 
 export default function TeacherCourseOverviewPage() {
   const { courseId } = useParams();
-  const location = useLocation();
   const [tab, setTab] = useState("Overview");
   const [actionError, setError] = useState("");
-  const [notice, setNotice] = useState(location.state?.success || "");
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [module, setModule] = useState({ title: "", description: "" });
   const [lesson, setLesson] = useState({});
@@ -68,14 +70,13 @@ export default function TeacherCourseOverviewPage() {
     setError("");
     try {
       await action();
-      setNotice(message);
+      toast.success(message);
       await Promise.all([loadCourse(), loadTab()]);
       return true;
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "The change could not be saved.",
-      );
+      const errorMessage = actionErrorMessage(requestError, "The change could not be saved.");
+      setError(errorMessage);
+      toast.error(errorMessage);
       return false;
     } finally {
       setBusy(false);
@@ -104,7 +105,7 @@ export default function TeacherCourseOverviewPage() {
       title: "Delete module?",
       message: `This module contains ${count} lesson${count === 1 ? "" : "s"}. Deleting it may also remove its lessons, materials, and progress. This action cannot be undone.`,
       confirmLabel: "Delete module",
-      action: () => save(() => api.delete(`/teacher/modules/${item.id}`), "Module deleted."),
+      action: () => save(() => api.delete(`/teacher/modules/${item.id}`), "Module deleted successfully."),
     });
   }
 
@@ -113,7 +114,7 @@ export default function TeacherCourseOverviewPage() {
       title: "Delete lesson?",
       message: "Students may already have progress associated with this lesson. Deleting it also removes related materials and affects progress calculations.",
       confirmLabel: "Delete lesson",
-      action: () => save(() => api.delete(`/teacher/lessons/${item.id}`), "Lesson deleted."),
+      action: () => save(() => api.delete(`/teacher/lessons/${item.id}`), "Lesson deleted successfully."),
     });
   }
 
@@ -127,12 +128,10 @@ export default function TeacherCourseOverviewPage() {
   }
 
   function removeStudent(item) {
-    setConfirmation({
-      title: "Remove Student from course?",
-      message: "The Student account and history will be preserved, but the Student will lose active access to this course.",
-      confirmLabel: "Remove Student",
-      action: () => save(() => api.delete(`/teacher/courses/${courseId}/students/${item.id}`), "Student removed from course."),
-    });
+    return save(
+      () => api.delete(`/teacher/courses/${courseId}/students/${item.id}`),
+      "Student removed from the course.",
+    );
   }
 
   if (loading) {
@@ -172,15 +171,16 @@ export default function TeacherCourseOverviewPage() {
         <Link className="ph-action inline-flex text-sm font-bold text-emerald-800 hover:-translate-x-0.5" to="/teacher/courses">
           ← Back to My Courses
         </Link>
-        <div className="ph-page-enter ph-surface mt-6 rounded-2xl p-6">
+        <div className="ph-page-enter ph-surface mt-5 rounded-2xl px-6 py-5 sm:px-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Manage Course · {course.course_code}</p>
             <StatusBadge value={course.status} />
           </div>
-          <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{course.title}</h1>
+          <h1 className="mt-2 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{course.title}</h1>
         </div>
 
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-3 pt-2 sm:px-5">
           <div className="ph-tabs max-w-full border-b-0">
             {tabs.map((item) => (
               <button
@@ -201,14 +201,14 @@ export default function TeacherCourseOverviewPage() {
             ))}
           </div>
           <Link
-            className="mb-2 text-sm font-bold text-emerald-800 hover:underline"
+            className="ph-action mb-2 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
             to={`/teacher/courses/${courseId}/materials`}
           >
-            Manage lesson materials
+            <FolderOpen aria-hidden="true" size={16} /> Manage Materials
           </Link>
         </div>
 
-        <Alert>{notice}</Alert>
+          <div className="px-4 pb-5 sm:px-5 sm:pb-6">
         <Alert error>{error}</Alert>
         {tab === "Overview" && (
           <OverviewTab
@@ -270,6 +270,8 @@ export default function TeacherCourseOverviewPage() {
             setEmail={setEmail}
           />
         )}
+          </div>
+        </div>
         <ConfirmationDialog
           confirmLabel={confirmation?.confirmLabel}
           destructive

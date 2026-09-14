@@ -1,9 +1,9 @@
-import { LogOut, UserRound } from "lucide-react";
+import { LogOut, Settings, UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { preloadWorkspaceRoute } from "../../utils/workspaceRoutes.js";
 
-export default function AccountMenu({ profile, profileRoute, role, onSignOut }) {
+export default function AccountMenu({ profile, profileRoute, role, onSignOut, settingsRoute }) {
   const [open, setOpen] = useState(false);
   const container = useRef(null);
   const trigger = useRef(null);
@@ -12,6 +12,7 @@ export default function AccountMenu({ profile, profileRoute, role, onSignOut }) 
   const name = [profile?.first_name, profile?.last_name]
     .filter(Boolean)
     .join(" ") || (role === "Admin" ? "Administrator" : role);
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -70,6 +71,8 @@ export default function AccountMenu({ profile, profileRoute, role, onSignOut }) 
       >
         {profile?.avatar_url ? (
           <img alt="" className="size-9 rounded-full object-cover" src={profile.avatar_url} />
+        ) : role === "Teacher" ? (
+          <span aria-hidden="true" className="grid size-9 place-items-center rounded-full bg-emerald-700 text-xs font-bold text-white">{initials}</span>
         ) : (
           <UserRound aria-hidden="true" size={21} />
         )}
@@ -95,6 +98,20 @@ export default function AccountMenu({ profile, profileRoute, role, onSignOut }) 
                 <UserRound aria-hidden="true" size={17} /> Profile
               </Link>
             )}
+            {settingsRoute && (
+              <Link
+                className="flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
+                onClick={() => setOpen(false)}
+                onFocus={() => preloadWorkspaceRoute(settingsRoute)}
+                onMouseEnter={() => preloadWorkspaceRoute(settingsRoute)}
+                role="menuitem"
+                tabIndex={-1}
+                to={settingsRoute}
+              >
+                <Settings aria-hidden="true" size={17} /> Settings
+              </Link>
+            )}
+            {(profileRoute || settingsRoute) && <div aria-hidden="true" className="my-1 border-t border-slate-100" />}
             <button
               className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"
               onClick={() => {

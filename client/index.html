@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="PhinmaHub — Learning made accessible." />
     <title>PhinmaHub</title>
+    <script>
+      (() => {
+        try {
+          const key = localStorage.getItem("phinmahub:last-preferences-key");
+          const value = key ? JSON.parse(localStorage.getItem(key) || "{}") : {};
+          const theme = ["light", "dark", "system"].includes(value.theme) ? value.theme : "system";
+          const density = ["comfortable", "compact"].includes(value.density) ? value.density : "comfortable";
+          const motion = ["system", "reduce", "allow"].includes(value.motion) ? value.motion : "system";
+          const pathname = window.location.pathname;
+          const workspace = /^\/student(?:\/|$)/.test(pathname)
+            || /^\/teacher(?:\/|$)/.test(pathname)
+            || (/^\/admin(?:\/|$)/.test(pathname) && pathname !== "/admin/login");
+          document.documentElement.dataset.theme = !workspace
+            ? "light"
+            : theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : theme === "system" ? "light" : theme;
+          document.documentElement.dataset.themePreference = theme;
+          document.documentElement.dataset.density = density;
+          document.documentElement.dataset.motion = motion;
+        } catch {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

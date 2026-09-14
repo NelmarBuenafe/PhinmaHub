@@ -16,7 +16,7 @@ The script does not use `DROP` or `TRUNCATE`. It creates application tables, ind
 
 In **Table Editor**, confirm that these tables exist in the `public` schema:
 
-`profiles`, `student_profiles`, `teacher_profiles`, `courses`, `enrollments`, `course_modules`, `lessons`, `lesson_progress`, `assignments`, `submissions`, `announcements`, `study_tools`, `contact_messages`, and `audit_logs`.
+`profiles`, `student_profiles`, `teacher_profiles`, `courses`, `enrollments`, `course_modules`, `lessons`, `lesson_progress`, `assignments`, `submissions`, `submission_attachments`, `announcements`, `study_tools`, `contact_messages`, and `audit_logs`.
 
 Open **Database > Policies** and confirm that RLS is enabled for every table. Verify that policies exist for the expected admin, teacher, student, and public operations.
 
@@ -29,7 +29,7 @@ where schemaname = 'public'
   and tablename in (
     'profiles', 'student_profiles', 'teacher_profiles', 'courses',
     'enrollments', 'course_modules', 'lessons', 'lesson_progress',
-    'assignments', 'submissions', 'announcements', 'study_tools',
+    'assignments', 'submissions', 'submission_attachments', 'announcements', 'study_tools',
     'contact_messages', 'audit_logs'
   )
 order by tablename;
@@ -51,6 +51,10 @@ Do not rerun the bootstrap for Student or Teacher accounts. Verified school-emai
 Never place a Supabase secret key or service-role key in SQL, frontend source files, screenshots, commits, or terminal output. The frontend may use only the publishable key. Keep the secret key only in the ignored `server/.env` file and use it from trusted server code.
 
 Course join codes are intentionally excluded from direct `anon` and `authenticated` column-level `SELECT` grants. A future server endpoint should validate authorization and return or consume a join code using the server-side client.
+
+## Phase 7 assignment submissions
+
+Run `phase7-submission-attachments.sql` after the existing schema and Phase 6 lesson-material migration. It adds normalized `submission_attachments` metadata and the private `assignment-submissions` bucket. The Node server validates ownership, enrollment, lifecycle state, file type, MIME type, size, and link protocol before issuing signed upload or read URLs. The migration is required before Student attachment uploads can work.
 
 ## Phase 3 authentication update
 

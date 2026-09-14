@@ -18,7 +18,7 @@ export default function RoleSidebar({ role, expanded, onNavigate, onToggle, mobi
       <div className="ph-sidebar-brand-row relative" data-expanded={expanded}>
         <Link aria-hidden={!expanded} aria-label={`PhinmaHub ${role} dashboard`} className="ph-sidebar-brand flex min-w-0 items-center gap-3 rounded-lg" inert={!expanded} onClick={onNavigate} to={base}>
           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-emerald-700 text-sm font-bold text-white">P</span>
-          <span className="min-w-0"><span className="block text-base font-bold tracking-tight text-emerald-900">PhinmaHub</span><span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{role}</span></span>
+          <span className="min-w-0"><span className="block text-base font-bold tracking-tight text-emerald-900">PhinmaHub</span><span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{role} Portal</span></span>
         </Link>
         {!mobile && onToggle && <button aria-expanded={expanded} aria-label={expanded ? "Collapse navigation" : "Expand navigation"} className="ph-sidebar-toggle ph-action group grid size-8 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-800" onClick={onToggle} type="button">
           {expanded ? <PanelLeftClose aria-hidden="true" size={18} /> : <PanelLeftOpen aria-hidden="true" size={18} />}
@@ -37,6 +37,7 @@ export default function RoleSidebar({ role, expanded, onNavigate, onToggle, mobi
           </NavLink>
         ))}
       </nav>
+      {!mobile && role === "Teacher" && <p className="ph-sidebar-footer" aria-hidden={!expanded}>PhinmaHub v1.0</p>}
     </>
   );
 }

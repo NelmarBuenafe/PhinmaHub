@@ -23,7 +23,7 @@ function PublicNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-[0_1px_18px_rgb(15_23_42/0.04)] backdrop-blur-xl">
+    <header className="ph-public-navbar sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-[0_1px_18px_rgb(15_23_42/0.04)] backdrop-blur-xl">
       <nav
         aria-label="Primary navigation"
         className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8"

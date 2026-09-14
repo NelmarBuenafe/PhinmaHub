@@ -18,6 +18,7 @@ import { useAuth } from "../../contexts/authContext.js";
 import api from "../../services/api.js";
 import { supabase } from "../../services/supabase.js";
 import { getFriendlyAuthError } from "../../utils/auth.js";
+import { useToast } from "../../contexts/toastStore.js";
 import {
   clearRegistrationDraft,
   getRegistrationDraft,
@@ -28,6 +29,7 @@ import {
 const publicRoles = new Set(["student", "teacher"]);
 
 function RoleAuthPage() {
+  const toast = useToast();
   const { role } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -157,12 +159,9 @@ function RoleAuthPage() {
         navigate("/school-email-required", { replace: true });
         return;
       }
-      setError(
-        getFriendlyAuthError(
-          requestError,
-          "Login could not be completed. Please try again.",
-        ),
-      );
+      const message = getFriendlyAuthError(requestError, "Login could not be completed. Please try again.");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -226,6 +225,7 @@ function RoleAuthPage() {
         await validateSession();
         navigate(activation.data.destination, { replace: true });
       } else {
+        toast.success("Account created. Please check your email to verify your account.");
         navigate("/pending", {
           replace: true,
           state: {
@@ -240,14 +240,9 @@ function RoleAuthPage() {
         navigate("/school-email-required", { replace: true });
         return;
       }
-      setError(
-        getFriendlyAuthError(
-          requestError,
-          requestError.code === "EMAIL_ALREADY_REGISTERED"
-            ? requestError.message
-            : "Registration could not be completed. Please try again.",
-        ),
-      );
+      const message = getFriendlyAuthError(requestError, requestError.code === "EMAIL_ALREADY_REGISTERED" ? requestError.message : "Registration could not be completed. Please try again.");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -259,7 +254,9 @@ function RoleAuthPage() {
     try {
       await beginGoogleSignIn({ role, mode: isAdmin ? "login" : mode });
     } catch {
-      setError("Google authentication could not be started. Please try again.");
+      const message = "Google authentication could not be started. Please try again.";
+      setError(message);
+      toast.error(message);
       setLoading(false);
     }
   }

@@ -205,6 +205,32 @@ create table if not exists public.submissions (
   )
 );
 
+create table if not exists public.submission_attachments (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references public.submissions(id) on delete cascade,
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  assignment_id uuid not null references public.assignments(id) on delete cascade,
+  type text not null,
+  file_name text,
+  storage_path text,
+  mime_type text,
+  file_size bigint,
+  external_url text,
+  created_at timestamptz not null default now(),
+  constraint submission_attachments_type_valid check (type in ('image', 'document', 'video', 'link')),
+  constraint submission_attachments_file_size_nonnegative check (file_size is null or file_size > 0),
+  constraint submission_attachments_source_valid check (
+    (type = 'link' and external_url is not null and storage_path is null and file_name is null and mime_type is null and file_size is null)
+    or
+    (type in ('image', 'document', 'video') and external_url is null and storage_path is not null and file_name is not null and mime_type is not null and file_size is not null)
+  )
+);
+
+create index if not exists submission_attachments_submission_idx
+  on public.submission_attachments (submission_id, created_at);
+create index if not exists submission_attachments_assignment_student_idx
+  on public.submission_attachments (assignment_id, student_id);
+
 create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   author_id uuid references public.profiles(id) on delete set null,
@@ -221,6 +247,25 @@ create table if not exists public.announcements (
     audience <> 'course' or course_id is not null
   )
 );
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  type text not null default 'announcement',
+  title text not null,
+  message text not null,
+  source_type text not null,
+  source_id uuid not null,
+  course_id uuid references public.courses(id) on delete cascade,
+  is_read boolean not null default false,
+  read_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint notifications_type_valid check (type in ('announcement')),
+  constraint notifications_source_valid check (source_type in ('announcement')),
+  constraint notifications_read_consistent check ((is_read and read_at is not null) or (not is_read and read_at is null)),
+  constraint notifications_recipient_source_unique unique (recipient_id, source_type, source_id)
+);
+create index if not exists notifications_recipient_unread_idx on public.notifications (recipient_id, is_read, created_at desc);
 
 create table if not exists public.study_tools (
   id uuid primary key default gen_random_uuid(),
@@ -548,7 +593,7 @@ declare
 begin
   foreach table_name in array array[
     'profiles', 'student_profiles', 'teacher_profiles', 'courses', 'enrollments',
-    'course_modules', 'lessons', 'lesson_progress', 'assignments', 'submissions',
+    'course_modules', 'lessons', 'lesson_progress', 'assignments', 'submissions', 'submission_attachments',
     'announcements', 'study_tools', 'contact_messages'
   ] loop
     if not exists (
@@ -628,14 +673,14 @@ end $$;
 revoke all on table
   public.profiles, public.student_profiles, public.teacher_profiles, public.courses,
   public.enrollments, public.course_modules, public.lessons, public.lesson_progress,
-  public.assignments, public.submissions, public.announcements, public.study_tools,
+  public.assignments, public.submissions, public.submission_attachments, public.announcements, public.study_tools,
   public.contact_messages, public.audit_logs
 from anon, authenticated;
 
 grant select, insert, update, delete on table
   public.profiles, public.student_profiles, public.teacher_profiles,
   public.enrollments, public.course_modules, public.lessons, public.lesson_progress,
-  public.assignments, public.submissions, public.announcements, public.study_tools
+  public.assignments, public.submissions, public.submission_attachments, public.announcements, public.study_tools
 to authenticated;
 
 grant insert, update, delete on table public.courses to authenticated;
@@ -722,6 +767,12 @@ begin
       ('Students insert own submissions', 'submissions', 'insert', 'authenticated', null, '(select auth.uid()) = student_id and status <> ''graded'' and private.is_enrolled_in_assignment(assignment_id)'),
       ('Students update own submissions', 'submissions', 'update', 'authenticated', '(select auth.uid()) = student_id and status <> ''graded''', '(select auth.uid()) = student_id and status <> ''graded'' and private.is_enrolled_in_assignment(assignment_id)'),
 
+      ('Admins manage submission attachments', 'submission_attachments', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
+      ('Teachers view owned submission attachments', 'submission_attachments', 'select', 'authenticated', 'private.owns_assignment(assignment_id)', null),
+      ('Students view own submission attachments', 'submission_attachments', 'select', 'authenticated', '(select auth.uid()) = student_id and private.is_enrolled_in_assignment(assignment_id)', null),
+      ('Students insert own submission attachments', 'submission_attachments', 'insert', 'authenticated', null, '(select auth.uid()) = student_id and private.is_enrolled_in_assignment(assignment_id) and exists (select 1 from public.submissions s where s.id = submission_id and s.assignment_id = public.submission_attachments.assignment_id and s.student_id = (select auth.uid()) and s.status <> ''graded'')'),
+      ('Students delete own submission attachments', 'submission_attachments', 'delete', 'authenticated', '(select auth.uid()) = student_id and private.is_enrolled_in_assignment(assignment_id) and exists (select 1 from public.submissions s where s.id = submission_id and s.status <> ''graded'')', null),
+
       ('Admins manage announcements', 'announcements', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
       ('Teachers manage owned course announcements', 'announcements', 'all', 'authenticated', 'author_id = (select auth.uid()) and course_id is not null and private.owns_course(course_id)', 'author_id = (select auth.uid()) and course_id is not null and private.owns_course(course_id)'),
       ('Active users view relevant announcements', 'announcements', 'select', 'authenticated', 'published_at is not null and published_at <= now() and private.is_active_user() and (audience = ''all'' or (audience = ''teachers'' and private.has_role(''teacher'')) or (audience = ''students'' and private.has_role(''student'')) or (audience = ''course'' and private.is_enrolled(course_id)))', null),
@@ -759,3 +810,15 @@ begin
     end if;
   end loop;
 end $$;
+
+-- Assignment submissions are private. The server is the only upload/read path
+-- and returns short-lived signed URLs after authorization checks.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('assignment-submissions', 'assignment-submissions', false, 52428800)
+on conflict (id) do update set public = false, file_size_limit = 52428800;
+
+-- Profile photos remain private. Upload and display URLs are created only by
+-- the authenticated server after validating the currently signed-in user.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('profile-avatars', 'profile-avatars', false, 2097152)
+on conflict (id) do update set public = false, file_size_limit = 2097152;

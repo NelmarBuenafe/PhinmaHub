@@ -49,6 +49,16 @@ import {
   listStudentAssignmentsOverview,
 } from "../controllers/studentController.js";
 import {
+  addSubmissionLink,
+  cleanupSubmissionUpload,
+  confirmSubmissionAttachment,
+  createSubmissionUploadUrl,
+  getStudentAssignmentDetail,
+  removeSubmissionAttachment,
+  studentSubmissionAttachmentAccess,
+  teacherSubmissionAttachmentAccess,
+} from "../controllers/submissionAttachmentController.js";
+import {
   createTeacherAnnouncement,
   deleteTeacherAnnouncement,
   listTeacherAnnouncements,
@@ -73,6 +83,13 @@ studentCourseRouter.get("/courses/:courseId/assignments", listStudentAssignments
 studentCourseRouter.post("/lessons/:lessonId/complete", completeLesson);
 studentCourseRouter.get("/materials/:materialId/access", studentMaterialAccess);
 studentCourseRouter.put("/assignments/:assignmentId/submission", saveStudentSubmission);
+studentCourseRouter.get("/assignments/:assignmentId/detail", getStudentAssignmentDetail);
+studentCourseRouter.post("/assignments/:assignmentId/submission/upload-url", createSubmissionUploadUrl);
+studentCourseRouter.post("/assignments/:assignmentId/submission/attachments", confirmSubmissionAttachment);
+studentCourseRouter.post("/assignments/:assignmentId/submission/links", addSubmissionLink);
+studentCourseRouter.delete("/assignments/:assignmentId/submission/attachments/:attachmentId", removeSubmissionAttachment);
+studentCourseRouter.delete("/assignments/:assignmentId/submission/upload", cleanupSubmissionUpload);
+studentCourseRouter.get("/assignments/:assignmentId/submission/attachments/:attachmentId/access", studentSubmissionAttachmentAccess);
 
 export const teacherCourseRouter = Router();
 teacherCourseRouter.use(authenticate, authorizeRole("teacher"));
@@ -109,3 +126,4 @@ teacherCourseRouter.put("/assignments/:assignmentId", updateAssignment);
 teacherCourseRouter.delete("/assignments/:assignmentId", deleteAssignment);
 teacherCourseRouter.get("/assignments/:assignmentId/submissions", listAssignmentSubmissions);
 teacherCourseRouter.put("/submissions/:submissionId/grade", gradeSubmission);
+teacherCourseRouter.get("/submissions/:submissionId/attachments/:attachmentId/access", teacherSubmissionAttachmentAccess);

@@ -59,6 +59,11 @@
 }
 
 @layer components {
+  .ph-notification-badge {
+    border-color: var(--ph-bg-surface);
+    background: #dc2626;
+    color: #fff;
+  }
   .ph-role-shell {
     --ph-app-header-height: 60px;
     --ph-menu-top: 60px;
@@ -70,7 +75,7 @@
   }
 
   .ph-role-shell[data-expanded="true"] > .ph-global-sidebar {
-    width: 232px;
+    width: 240px;
   }
 
   .ph-sidebar-brand-row {
@@ -114,12 +119,194 @@
     padding: 24px 16px;
   }
 
+  .ph-role-shell[data-learning="true"] .ph-role-workspace {
+    padding: 0;
+    background: #f4f7f7;
+  }
+
+  .ph-role-shell[data-workspace="assignments"] .ph-role-workspace {
+    padding: 0;
+    background: #f4f7f7;
+  }
+
+  .ph-learning-page,
+  .ph-learning-grid,
+  .ph-learning-main {
+    min-height: 100dvh;
+  }
+
+  .ph-learning-grid {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ph-course-content-panel {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 100dvh;
+    overflow-y: auto;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .ph-learning-main {
+    min-width: 0;
+    background: #f4f7f7;
+  }
+
+  .ph-learning-main-inner {
+    min-width: 0;
+    padding: 32px 48px 48px;
+  }
+
+  .ph-learning-utility-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .ph-student-workspace-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .ph-video-thumbnail {
+    min-height: 112px;
+  }
+
+  .ph-assignment-page,
+  .ph-assignment-main {
+    min-height: 100dvh;
+  }
+
+  .ph-assignment-main {
+    min-width: 0;
+    background: #f4f7f7;
+  }
+
+  .ph-assignment-main-inner {
+    min-width: 0;
+    padding: 32px 48px 48px;
+  }
+
+  .ph-assignment-detail,
+  .ph-assignment-empty-state {
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    padding: 28px 32px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+  }
+
+  .ph-assignment-empty-page {
+    padding: 24px 16px;
+  }
+
+  .ph-lesson-surface {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.025);
+  }
+
+  .ph-assignment-surface {
+    min-width: 0;
+  }
+
+  .ph-assignment-work-panel {
+    min-width: 0;
+  }
+
+  @media (min-width: 1280px) {
+    .ph-assignment-work-panel {
+      position: sticky;
+      top: 84px;
+    }
+  }
+
+  .ph-learning-empty {
+    padding: 24px 16px;
+  }
+
+  .ph-material-document {
+    border-color: #dbe4ec;
+  }
+
+  .ph-material-document .ph-material-icon {
+    background: #eef5fb;
+    color: #356783;
+  }
+
+  .ph-material-pdf {
+    border-color: #f2dada;
+  }
+
+  .ph-material-pdf .ph-material-icon {
+    background: #fdf0f0;
+    color: #b45353;
+  }
+
+  .ph-material-video {
+    border-color: #dbe4ec;
+  }
+
+  .ph-material-video .ph-material-icon {
+    background: #eef5fb;
+    color: #356783;
+  }
+
+  .ph-material-external {
+    border-color: #cce7db;
+  }
+
+  .ph-material-external .ph-material-icon {
+    background: #ecf8f2;
+    color: #18734e;
+  }
+
+  .ph-material-form {
+    border-color: #e8dcf3;
+  }
+
+  .ph-material-form .ph-material-icon {
+    background: #f6effb;
+    color: #7c4aa3;
+  }
+
   @media (min-width: 768px) {
     .ph-role-workspace { padding-inline: 24px; }
+    .ph-learning-empty { padding-inline: 24px; }
   }
 
   @media (min-width: 1200px) {
     .ph-role-workspace { padding: 28px; }
+    .ph-learning-empty { padding: 28px; }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1439px) {
+    .ph-learning-grid { grid-template-columns: 280px minmax(0, 1fr); }
+  }
+
+  @media (max-width: 1023px) {
+    .ph-learning-grid { grid-template-columns: minmax(0, 1fr); }
+    .ph-course-content-panel {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      border-right: 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .ph-learning-main { min-height: auto; }
+    .ph-assignment-main { min-height: auto; }
+  }
+
+  @media (max-width: 767px) {
+    .ph-learning-main-inner { padding: 24px 16px 32px; }
+    .ph-assignment-main-inner { padding: 24px 16px 32px; }
+    .ph-assignment-detail,
+    .ph-assignment-empty-state { padding: 24px 20px; }
   }
 
   .ph-role-page {
@@ -128,6 +315,61 @@
 
   .ph-role-shell .ph-course-card { padding: 20px; }
   .ph-role-shell .ph-metric { min-height: 96px; padding: 16px; }
+
+  .ph-role-shell[data-role="teacher"] {
+    --ph-app-header-height: 64px;
+    --ph-menu-top: 64px;
+    background: #f1f5f9;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-global-sidebar {
+    border-color: #1e293b;
+    background: #0f172a;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-brand span:nth-child(2) > span:first-child {
+    color: #f8fafc;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-brand span:nth-child(2) > span:last-child,
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-toggle,
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-link {
+    color: #a8b9d5;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-toggle:hover {
+    background: #1e293b;
+    color: #f8fafc;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-link:hover {
+    background: #17233a;
+    color: #f8fafc;
+  }
+
+  .ph-role-shell[data-role="teacher"] .ph-sidebar-link[aria-current="page"] {
+    box-shadow: inset 2px 0 0 #34d399;
+    background: #064e3b;
+    color: #34d399;
+  }
+
+  .ph-sidebar-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    margin: 0;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: opacity 120ms ease;
+  }
+
+  .ph-role-shell[data-expanded="false"] .ph-sidebar-footer {
+    opacity: 0;
+    pointer-events: none;
+  }
 
   .ph-sidebar-link {
     transition: color 180ms, background-color 180ms;
@@ -147,10 +389,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ph-global-sidebar, .ph-sidebar-link, .ph-nav-tooltip,
-    .ph-sidebar-brand-row, .ph-sidebar-brand-row[data-expanded] > .ph-sidebar-brand,
-    .ph-sidebar-brand-row > .ph-sidebar-toggle { transition: none; }
-    .ph-navigation-drawer { animation: none; }
+    html:not([data-motion="allow"]) .ph-global-sidebar, html:not([data-motion="allow"]) .ph-sidebar-link, html:not([data-motion="allow"]) .ph-nav-tooltip,
+    html:not([data-motion="allow"]) .ph-sidebar-brand-row, html:not([data-motion="allow"]) .ph-sidebar-brand-row[data-expanded] > .ph-sidebar-brand,
+    html:not([data-motion="allow"]) .ph-sidebar-brand-row > .ph-sidebar-toggle { transition: none; }
+    html:not([data-motion="allow"]) .ph-navigation-drawer { animation: none; }
   }
 
   .ph-app-container {
@@ -268,6 +510,11 @@
     @apply mt-auto self-start;
   }
 
+  .ph-role-shell[data-role="teacher"] .ph-course-card > a:last-child {
+    @apply w-full self-auto justify-center;
+    margin-top: auto !important;
+  }
+
   .ph-course-card > :nth-last-child(2) {
     @apply mb-5;
   }
@@ -334,6 +581,10 @@
     animation: ph-toast-in 220ms var(--ph-ease) both;
   }
 
+  .ph-toast-exit {
+    animation: ph-toast-out 180ms ease-in both;
+  }
+
   .ph-float {
     animation: ph-float 7s ease-in-out infinite;
   }
@@ -370,6 +621,10 @@
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
+@keyframes ph-toast-out {
+  to { opacity: 0; transform: translate3d(0, -5px, 0); }
+}
+
 @keyframes ph-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -393,13 +648,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html:not([data-motion="allow"]) {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
+  html:not([data-motion="allow"]) *,
+  html:not([data-motion="allow"]) *::before,
+  html:not([data-motion="allow"]) *::after {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
@@ -407,22 +662,67 @@
     transition-duration: 0.01ms !important;
   }
 
-  .ph-page-enter,
-  .ph-card-enter,
-  .ph-dialog-panel,
-  .ph-toast-enter,
-  .ph-float {
+  html:not([data-motion="allow"]) .ph-page-enter,
+  html:not([data-motion="allow"]) .ph-card-enter,
+  html:not([data-motion="allow"]) .ph-dialog-panel,
+  html:not([data-motion="allow"]) .ph-toast-enter,
+  html:not([data-motion="allow"]) .ph-toast-exit,
+  html:not([data-motion="allow"]) .ph-float {
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .ph-interactive-card:hover,
-  .ph-interactive-card:focus-within,
-  .ph-action:active:not(:disabled) {
+  html:not([data-motion="allow"]) .ph-interactive-card:hover,
+  html:not([data-motion="allow"]) .ph-interactive-card:focus-within,
+  html:not([data-motion="allow"]) .ph-action:active:not(:disabled) {
     transform: none !important;
   }
 
-  .ph-skeleton::after {
+  html:not([data-motion="allow"]) .ph-skeleton::after {
     display: none;
   }
+}
+
+@layer base {
+  :root {
+    --ph-bg-app: #f8fafb;
+    --ph-bg-surface: #ffffff;
+    --ph-bg-muted: #f8fafc;
+    --ph-text-primary: #020617;
+    --ph-text-secondary: #475569;
+    --ph-border: #e2e8f0;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --ph-bg-app: #0f172a;
+    --ph-bg-surface: #172033;
+    --ph-bg-muted: #1e293b;
+    --ph-text-primary: #f8fafc;
+    --ph-text-secondary: #cbd5e1;
+    --ph-border: #334155;
+  }
+
+  html[data-theme="dark"] body { background: var(--ph-bg-app); color: var(--ph-text-primary); }
+  html[data-theme="dark"] .bg-white, html[data-theme="dark"] .bg-white\/95, html[data-theme="dark"] .ph-dialog-panel { background-color: var(--ph-bg-surface) !important; }
+  html[data-theme="dark"] .bg-slate-50, html[data-theme="dark"] .bg-slate-50\/70, html[data-theme="dark"] .bg-slate-50\/40, html[data-theme="dark"] .bg-slate-100, html[data-theme="dark"] .ph-skeleton { background-color: var(--ph-bg-muted) !important; }
+  html[data-theme="dark"] .text-slate-950, html[data-theme="dark"] .text-slate-900, html[data-theme="dark"] .text-slate-800 { color: var(--ph-text-primary) !important; }
+  html[data-theme="dark"] .text-slate-700, html[data-theme="dark"] .text-slate-600, html[data-theme="dark"] .text-slate-500, html[data-theme="dark"] .text-slate-400 { color: var(--ph-text-secondary) !important; }
+  html[data-theme="dark"] .border-slate-100, html[data-theme="dark"] .border-slate-200, html[data-theme="dark"] .border-slate-200\/80, html[data-theme="dark"] .border-white\/80 { border-color: var(--ph-border) !important; }
+  html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), html[data-theme="dark"] select, html[data-theme="dark"] textarea { background-color: var(--ph-bg-muted); border-color: var(--ph-border); color: var(--ph-text-primary); }
+  html[data-theme="dark"] input::placeholder, html[data-theme="dark"] textarea::placeholder { color: #94a3b8; }
+}
+
+@layer components {
+  html[data-theme="dark"] .ph-role-shell, html[data-theme="dark"] .ph-role-shell[data-role="teacher"], html[data-theme="dark"] .ph-role-workspace, html[data-theme="dark"] .ph-learning-main, html[data-theme="dark"] .ph-assignment-main, html[data-theme="dark"] .ph-role-shell[data-learning="true"] .ph-role-workspace, html[data-theme="dark"] .ph-role-shell[data-workspace="assignments"] .ph-role-workspace { background: var(--ph-bg-app); }
+  html[data-theme="dark"] .ph-surface, html[data-theme="dark"] .ph-interactive-card, html[data-theme="dark"] .ph-assignment-detail, html[data-theme="dark"] .ph-assignment-empty-state, html[data-theme="dark"] .ph-lesson-surface { border-color: var(--ph-border); background: var(--ph-bg-surface); }
+  html[data-density="compact"] .ph-role-workspace { padding: 16px; }
+  html[data-density="compact"] .ph-role-shell .ph-course-card { padding: 16px; }
+  html[data-density="compact"] .ph-role-shell .ph-metric { min-height: 82px; padding: 12px; }
+  html[data-density="compact"] .ph-table th { padding-block: 10px; }
+  html[data-density="compact"] .ph-table td { padding-block: 10px; }
+  html[data-density="compact"] .ph-tab { padding-block: 9px; }
+  html[data-motion="reduce"] { scroll-behavior: auto; }
+  html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  html[data-motion="reduce"] .ph-skeleton::after { display: none; }
 }

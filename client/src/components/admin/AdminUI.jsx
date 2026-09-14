@@ -2,6 +2,7 @@ import { AlertCircle, Inbox, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import CommonPageHeader from "../common/PageHeader.jsx";
 import CommonStatusBadge from "../common/StatusBadge.jsx";
+import { useToast } from "../../contexts/toastStore.js";
 
 export function PageHeader(props) {
   return <div className="mb-7"><CommonPageHeader {...props} /></div>;
@@ -176,20 +177,18 @@ export function ConfirmationDialog({
   );
 }
 export function Toast({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div
-      className="ph-toast-enter fixed bottom-4 left-4 right-4 z-[80] flex max-w-sm items-center
-        justify-between gap-3 rounded-xl bg-slate-950 px-4 py-3 text-sm
-        font-bold text-white shadow-xl sm:bottom-5 sm:left-auto sm:right-5"
-      role="status"
-    >
-      {message}
-      <button aria-label="Dismiss notification" onClick={onClose} type="button">
-        <X size={17} />
-      </button>
-    </div>
-  );
+  const toast = useToast();
+  useEffect(() => {
+    if (!message) return;
+    const type = /unable|failed|error|rejection reason/i.test(message)
+      ? "error"
+      : /already|marked as read|in progress/i.test(message)
+        ? "info"
+        : "success";
+    toast.show({ message, type });
+    onClose?.();
+  }, [message, onClose, toast]);
+  return null;
 }
 export function SearchFilters({ children, onSearch, search, setSearch }) {
   return (

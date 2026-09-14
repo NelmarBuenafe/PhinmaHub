@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabase.js";
+import { resolveProfileAvatar } from "../controllers/profileAvatarController.js";
 import { isGoogleUser, isInstitutionalEmail } from "../utils/auth.js";
 
 function getBearerToken(authorizationHeader) {
@@ -95,7 +96,7 @@ export async function loadProfile(request, response, next) {
       });
     }
 
-    request.auth.profile = profile;
+    request.auth.profile = await resolveProfileAvatar(profile);
     return next();
   } catch (cause) {
     const error = new Error("Unable to load the user profile", { cause });

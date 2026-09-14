@@ -17,7 +17,10 @@ const requiredTables = {
   lesson_progress: "id,student_id,lesson_id,is_completed",
   assignments: "id,course_id,title,is_published",
   submissions: "id,assignment_id,student_id,status",
+  submission_attachments:
+    "id,submission_id,student_id,assignment_id,type,file_name,storage_path,mime_type,file_size,external_url,created_at",
   announcements: "id,author_id,course_id,audience,title,body,published_at",
+  notifications: "id,recipient_id,type,title,message,source_type,source_id,course_id,is_read,read_at,created_at",
   study_tools: "id,creator_id,title,tool_type,url,is_active",
   contact_messages: "id,sender_name,sender_email,subject,message,status",
   audit_logs: "id,actor_id,action,entity_type,entity_id,metadata,created_at",
@@ -88,5 +91,37 @@ console.log(
 );
 
 if (!bucketReady) failed = true;
+
+const { data: submissionBucket, error: submissionBucketError } =
+  await supabase.storage.getBucket("assignment-submissions");
+const submissionBucketReady =
+  !submissionBucketError &&
+  submissionBucket?.public === false &&
+  submissionBucket?.file_size_limit === 50 * 1024 * 1024;
+
+console.log(
+  JSON.stringify({
+    storageBucket: "assignment-submissions",
+    available: !submissionBucketError,
+    private: submissionBucket?.public === false,
+    fileSizeLimit: submissionBucket?.file_size_limit ?? null,
+  }),
+);
+
+if (!submissionBucketReady) failed = true;
+
+const { data: profileAvatarBucket, error: profileAvatarBucketError } =
+  await supabase.storage.getBucket("profile-avatars");
+const profileAvatarBucketReady =
+  !profileAvatarBucketError &&
+  profileAvatarBucket?.public === false &&
+  profileAvatarBucket?.file_size_limit === 2 * 1024 * 1024;
+console.log(JSON.stringify({
+  storageBucket: "profile-avatars",
+  available: !profileAvatarBucketError,
+  private: profileAvatarBucket?.public === false,
+  fileSizeLimit: profileAvatarBucket?.file_size_limit ?? null,
+}));
+if (!profileAvatarBucketReady) failed = true;
 
 process.exitCode = failed ? 1 : 0;

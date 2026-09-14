@@ -5,13 +5,6 @@ import { useApiQuery } from "../../utils/useApiQuery.js";
 
 const sections = [
   {
-    title: "Personal Information",
-    fields: [
-      ["Student Name", (profile) => [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(" ")],
-      ["PHINMA Email", (profile) => profile.email],
-    ],
-  },
-  {
     title: "Academic Information",
     fields: [
       ["Student ID", (_profile, details) => details?.student_id],
@@ -33,8 +26,8 @@ export default function StudentProfilePage() {
       <section className="ph-role-page max-w-[1100px]">
         <PageHeader
           description="Review the personal and academic information associated with your account."
-          eyebrow="Student workspace"
-          title="My Profile"
+          eyebrow="Student portal"
+          title="Profile"
         />
         {!data && !error && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="profile" label="Loading your profile..." /></div>}
         {error && (
@@ -49,6 +42,7 @@ export default function StudentProfilePage() {
           <ProfileDetails
             details={data.studentProfile}
             profile={data.profile}
+            role="Student"
             sections={sections}
           />
         )}

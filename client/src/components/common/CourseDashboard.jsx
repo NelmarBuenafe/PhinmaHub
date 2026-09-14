@@ -30,9 +30,10 @@ function CourseDashboard({ role }) {
           </div>
           <AccountMenu
             profile={profile}
-            profileRoute={normalizedRole === "admin" ? "/admin/settings" : `/${normalizedRole}/profile`}
+            profileRoute={normalizedRole === "admin" ? "/admin/profile" : `/${normalizedRole}/profile`}
             role={role}
             onSignOut={signOut}
+            settingsRoute={`/${normalizedRole}/settings`}
           />
         </div>
       </header>

@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import api from "../../services/api.js";
 import { useApiQuery } from "../../utils/useApiQuery.js";
+import { useToast } from "../../contexts/toastStore.js";
+import { actionErrorMessage } from "../../utils/actionFeedback.js";
 
 const initialValues = {
   courseCode: "",
@@ -22,6 +24,7 @@ export default function CreateCoursePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const toast = useToast();
 
   function update(field, value) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -48,12 +51,12 @@ export default function CreateCoursePage() {
         title: values.title.trim(),
         description: values.description.trim(),
       });
-      navigate(`/teacher/courses/${response.data.data.id}`, {
-        replace: true,
-        state: { success: "Course created successfully." },
-      });
+      toast.success("Course created successfully.");
+      navigate(`/teacher/courses/${response.data.data.id}`, { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Course creation failed.");
+      const message = actionErrorMessage(requestError, "Unable to create course.");
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

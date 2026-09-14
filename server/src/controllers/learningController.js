@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { supabase } from "../config/supabase.js";
 import { publicMaterialFields } from "./lessonMaterialController.js";
+import { attachSubmissionAttachments } from "./submissionAttachmentController.js";
 
 const uuidSchema = z.string().uuid();
 const moduleSchema = z.object({
@@ -454,7 +455,8 @@ export async function listAssignmentSubmissions(request, response, next) {
     const { data: profiles, error: profileError } = ids.length ? await supabase.from("profiles").select("id,email,first_name,last_name").in("id", ids) : { data: [], error: null };
     if (profileError) throw profileError;
     const profileById = new Map((profiles || []).map((profile) => [profile.id, profile]));
-    return response.json({ success: true, data: (data || []).map((item) => ({ ...item, student: profileById.get(item.student_id) || null })) });
+    const withAttachments = await attachSubmissionAttachments(data || []);
+    return response.json({ success: true, data: withAttachments.map((item) => ({ ...item, student: profileById.get(item.student_id) || null })) });
   } catch (cause) { return sendUnexpected(next, "Unable to load submissions", cause); }
 }
 

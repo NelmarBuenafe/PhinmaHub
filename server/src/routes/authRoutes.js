@@ -8,6 +8,12 @@ import {
   validateAuthentication,
   verifyCaptcha,
 } from "../controllers/authController.js";
+import {
+  createProfileAvatarUploadUrl,
+  discardProfileAvatarUpload,
+  removeProfileAvatar,
+  saveProfileAvatar,
+} from "../controllers/profileAvatarController.js";
 import { finalizeGoogleAuthentication } from "../controllers/googleAuthController.js";
 import {
   activateRegistration,
@@ -58,6 +64,10 @@ router.post(
   finalizeGoogleAuthentication,
 );
 router.get("/me", authRateLimiter, authenticate, getCurrentUser);
+router.post("/avatar/upload-url", authRateLimiter, authenticate, createProfileAvatarUploadUrl);
+router.post("/avatar", authRateLimiter, authenticate, saveProfileAvatar);
+router.delete("/avatar/upload", authRateLimiter, authenticate, discardProfileAvatarUpload);
+router.delete("/avatar", authRateLimiter, authenticate, removeProfileAvatar);
 router.post(
   "/registration/activate",
   authRateLimiter,

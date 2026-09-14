@@ -2,12 +2,15 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
+import { useToast } from "../../contexts/toastStore.js";
+import { actionErrorMessage } from "../../utils/actionFeedback.js";
 
 export default function StudentJoinCoursePage() {
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   async function submit(event) {
     event.preventDefault();
@@ -21,15 +24,12 @@ export default function StudentJoinCoursePage() {
     setError("");
     try {
       await api.post("/student/courses/join", { joinCode: normalizedCode });
-      navigate("/student/courses", {
-        replace: true,
-        state: { success: "Course joined successfully." },
-      });
+      toast.success("You joined the course successfully.");
+      navigate("/student/courses", { replace: true });
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "We couldn't join that course. Check the code and try again.",
-      );
+      const message = actionErrorMessage(requestError, "We couldn't join that course. Check the code and try again.");
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }

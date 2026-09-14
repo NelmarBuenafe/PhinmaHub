@@ -31,7 +31,7 @@ function ChooseRolePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-5 py-10 sm:py-16">
+    <main className="min-h-screen bg-slate-50 px-5 py-10 text-slate-900 sm:py-16">
       <div className="mx-auto max-w-5xl">
         <div className="flex items-center gap-4">
           <Link

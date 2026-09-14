@@ -181,7 +181,7 @@ export default function StudentDashboardPage() {
                       <Link
                         className="ph-action -mx-2 block rounded-xl px-2 py-4 first:pt-0 last:pb-0 hover:bg-slate-50"
                         key={assignment.id}
-                        to={`/student/courses/${assignment.course_id}?tab=Assignments#assignment-${assignment.id}`}
+                         to={`/student/assignments?assignment=${assignment.id}`}
                       >
                         <p className="font-bold text-slate-950">{assignment.title}</p>
                         <p className="mt-1 text-xs font-semibold text-emerald-700">

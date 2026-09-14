@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/authContext.js";
 import api from "../../services/api.js";
 import { getFriendlyAuthError } from "../../utils/auth.js";
 import { clearRegistrationDraft, getAuthFlow } from "../../utils/authFlow.js";
+import { useToast } from "../../contexts/toastStore.js";
 
 function nameParts(identity, session) {
   const metadata = session?.user?.user_metadata || {};
@@ -48,6 +49,7 @@ function RegistrationPage() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const toast = useToast();
 
   if (
     !["student", "teacher"].includes(role) ||
@@ -113,14 +115,12 @@ function RegistrationPage() {
       const response = await api.post(`/auth/register/${role}`, details());
       clearRegistrationDraft();
       await validateSession();
+      toast.success("Account created successfully.");
       navigate(response.data.destination, { replace: true });
     } catch (requestError) {
-      setError(
-        getFriendlyAuthError(
-          requestError,
-          requestError.message || "Registration could not be saved.",
-        ),
-      );
+      const message = getFriendlyAuthError(requestError, requestError.message || "Registration could not be saved.");
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

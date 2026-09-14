@@ -1,10 +1,14 @@
+import { ArrowLeft, BookOpen, Pencil } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
-import PageHeader from "../../components/common/PageHeader.jsx";
+import StatusBadge from "../../components/common/StatusBadge.jsx";
 import LessonMaterialsManager from "../../components/teacher/LessonMaterialsManager.jsx";
+import { LessonEditorDialog } from "../../components/teacher/TeacherCourseOverviewTabs.jsx";
 import api from "../../services/api.js";
 import { useApiQuery } from "../../utils/useApiQuery.js";
+import { useToast } from "../../contexts/toastStore.js";
+import { actionErrorMessage } from "../../utils/actionFeedback.js";
 
 function lessonDraft(lesson) {
   return {
@@ -21,57 +25,38 @@ export default function TeacherLessonMaterialsPage() {
 }
 
 function TeacherLessonMaterialsContent({ courseId }) {
+  const [searchParams] = useSearchParams();
   const moduleQuery = useApiQuery(`/teacher/courses/${courseId}/modules`, { errorMessage: "Unable to load this course's lessons." });
   const modules = moduleQuery.data?.data || [];
-  const availableLessons = modules.flatMap((module) => module.lessons);
-  const [selection, setSelection] = useState({ id: null, draft: null });
-  const selectedLesson = availableLessons.find((lesson) => lesson.id === selection.id) || availableLessons[0] || null;
-  const draft = selection.id === selectedLesson?.id ? selection.draft : selectedLesson ? lessonDraft(selectedLesson) : null;
+  const availableLessons = modules.flatMap((module) => module.lessons || []);
+  const [selectedId, setSelectedId] = useState(() => searchParams.get("lesson"));
+  const [editingLesson, setEditingLesson] = useState(null);
   const [saving, setSaving] = useState(false);
   const [actionError, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const loading = moduleQuery.loading;
+  const toast = useToast();
+  const selectedLesson = availableLessons.find((lesson) => lesson.id === selectedId) || availableLessons[0] || null;
+  const selectedModule = modules.find((module) => module.lessons?.some((lesson) => lesson.id === selectedLesson?.id)) || null;
   const error = actionError || moduleQuery.error;
-  const loadLessons = moduleQuery.reload;
   const setModules = (updater) => moduleQuery.update((current) => ({ ...current, data: updater(current.data) }));
-
-  function selectLesson(lesson) {
-    setSelection({ id: lesson.id, draft: lessonDraft(lesson) });
-    setNotice("");
-    setError("");
-  }
-
-  function updateDraft(key, value) {
-    setSelection({ id: selectedLesson.id, draft: { ...draft, [key]: value } });
-  }
 
   async function saveLesson(event) {
     event.preventDefault();
-    if (!selectedLesson || !draft) return;
-
+    if (!editingLesson?.values || !selectedLesson) return;
     setSaving(true);
     setError("");
-    setNotice("");
     try {
-      const response = await api.put(
-        `/teacher/lessons/${selectedLesson.id}`,
-        draft,
-      );
+      const response = await api.put(`/teacher/lessons/${selectedLesson.id}`, editingLesson.values);
       const updated = response.data.data;
-      setModules((currentModules) =>
-        currentModules.map((module) => ({
-          ...module,
-          lessons: module.lessons.map((lesson) =>
-            lesson.id === updated.id ? updated : lesson,
-          ),
-        })),
-      );
-      setSelection({ id: updated.id, draft: lessonDraft(updated) });
-      setNotice("Lesson details saved.");
+      setModules((currentModules) => currentModules.map((module) => ({
+        ...module,
+        lessons: (module.lessons || []).map((lesson) => lesson.id === updated.id ? updated : lesson),
+      })));
+      setEditingLesson(null);
+      toast.success("Lesson updated successfully.");
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message || "Unable to save lesson details.",
-      );
+      const message = actionErrorMessage(requestError, "Unable to update lesson.");
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -79,142 +64,37 @@ function TeacherLessonMaterialsContent({ courseId }) {
 
   return (
     <div className="min-w-0">
-
       <section className="ph-role-page">
-        <Link
-          className="text-sm font-bold text-emerald-800 hover:underline"
-          to={`/teacher/courses/${courseId}`}
-        >
-          ← Back to Manage Course
-        </Link>
-        <div className="mt-4">
-          <PageHeader
-            description="Select a lesson, update its learning content, then attach resources for enrolled Students."
-            eyebrow="Teacher workspace"
-            title="Lesson Materials"
-          />
-        </div>
-
-        {loading && (
-          <div className="mt-6 rounded-2xl border bg-white p-8">
-            <Loading variant="lesson" label="Loading lessons..." />
-          </div>
-        )}
-        {error && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
-            <p>{error}</p>
-            <button
-              className="mt-3 font-bold underline"
-              onClick={loadLessons}
-              type="button"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-        {!loading && !error && modules.length === 0 && (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
-            Create a module and lesson from Manage Course before adding learning
-            materials.
-          </div>
-        )}
-
-        {!loading && !error && modules.length > 0 && (
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.5fr)]">
-            <aside className="max-h-80 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 lg:max-h-[calc(100vh-8rem)]">
-              <h2 className="font-black text-slate-950">Course lessons</h2>
-              <div className="mt-4 space-y-4">
-                {modules.map((module) => (
+        <Link className="ph-action inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 hover:-translate-x-0.5" to={`/teacher/courses/${courseId}`}><ArrowLeft aria-hidden="true" size={16} /> Back to Course</Link>
+        {moduleQuery.loading && <div className="mt-6 rounded-2xl border bg-white p-8"><Loading variant="lesson" label="Loading lessons..." /></div>}
+        {error && <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800"><p>{error}</p><button className="mt-3 font-bold underline" onClick={moduleQuery.reload} type="button">Try again</button></div>}
+        {!moduleQuery.loading && !error && availableLessons.length === 0 && <div className="mt-6 grid min-h-72 place-items-center rounded-xl border border-slate-200 bg-white p-8 text-center"><div className="max-w-sm"><BookOpen aria-hidden="true" className="mx-auto text-slate-400" size={30} /><h1 className="mt-4 text-xl font-bold text-slate-950">No lessons available</h1><p className="mt-2 text-sm leading-6 text-slate-600">Create a module and lesson from Manage Course before adding learning materials.</p></div></div>}
+        {!moduleQuery.loading && !error && selectedLesson && (
+          <div className="mt-5 grid min-h-[calc(100dvh-10rem)] gap-5 xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]">
+            <aside className="min-w-0 overflow-x-hidden rounded-xl border border-slate-200 bg-white p-4 xl:sticky xl:top-22 xl:max-h-[calc(100dvh-8rem)] xl:overflow-y-auto">
+              <h1 className="text-base font-bold text-slate-950">Course Lessons</h1>
+              <div className="mt-5 space-y-5">
+                {modules.map((module, moduleIndex) => (
                   <section key={module.id}>
-                    <h3 className="text-sm font-bold text-slate-700">
-                      {module.title}
-                    </h3>
-                    <div className="mt-2 grid gap-1">
-                      {module.lessons.map((lesson) => (
-                        <button
-                          className={`rounded-lg px-3 py-2 text-left text-sm font-semibold ${
-                            selectedLesson?.id === lesson.id
-                              ? "bg-emerald-700 text-white"
-                              : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                          key={lesson.id}
-                          onClick={() => selectLesson(lesson)}
-                          type="button"
-                        >
-                          {lesson.title}
-                        </button>
-                      ))}
+                    <h2 className="break-words text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Module {module.position ?? module.order ?? moduleIndex + 1}: {module.title}</h2>
+                    <div className="mt-2 grid gap-1.5">
+                      {(module.lessons || []).map((lesson, lessonIndex) => <button aria-current={selectedLesson.id === lesson.id ? "true" : undefined} className={`ph-action w-full min-w-0 overflow-hidden rounded-lg border-l-2 px-3 py-2.5 text-left text-sm ${selectedLesson.id === lesson.id ? "border-emerald-500 bg-emerald-50 font-semibold text-emerald-950" : "border-transparent text-slate-700 hover:bg-slate-50"}`} key={lesson.id} onClick={() => { setSelectedId(lesson.id); setError(""); }} type="button"><span className="block text-xs text-slate-500">Lesson {lessonIndex + 1}</span><span className="mt-0.5 block min-w-0 truncate">{lesson.title}</span></button>)}
                     </div>
                   </section>
                 ))}
               </div>
             </aside>
-
-            {selectedLesson && draft && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                <h2 className="text-xl font-black text-slate-950">
-                  {selectedLesson.title}
-                </h2>
-                {notice && (
-                  <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-                    {notice}
-                  </p>
-                )}
-                <form className="mt-5 grid gap-4" onSubmit={saveLesson}>
-                  <label className="text-sm font-bold">
-                    Lesson title
-                    <input
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                      onChange={(event) => updateDraft("title", event.target.value)}
-                      required
-                      value={draft.title}
-                    />
-                  </label>
-                  <label className="text-sm font-bold">
-                    Lesson description / learning objectives
-                    <textarea
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                      onChange={(event) =>
-                        updateDraft("learningObjectives", event.target.value)
-                      }
-                      placeholder="Tell students what they will learn."
-                      rows="3"
-                      value={draft.learningObjectives}
-                    />
-                  </label>
-                  <label className="text-sm font-bold">
-                    Lesson content
-                    <textarea
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                      onChange={(event) => updateDraft("content", event.target.value)}
-                      placeholder="Write the lesson explanation or instructions."
-                      rows="8"
-                      value={draft.content}
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm font-bold">
-                    <input
-                      checked={draft.isPublished}
-                      onChange={(event) =>
-                        updateDraft("isPublished", event.target.checked)
-                      }
-                      type="checkbox"
-                    />
-                    Make this lesson available to enrolled students
-                  </label>
-                  <button
-                    className="justify-self-start rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-                    disabled={saving}
-                    type="submit"
-                  >
-                    {saving ? "Saving..." : "Save lesson details"}
-                  </button>
-                </form>
-                <LessonMaterialsManager key={selectedLesson.id} lessonId={selectedLesson.id} />
+            <main className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Lesson Materials</p>
+              <div className="mt-2 flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                <div className="min-w-0"><h1 className="break-words text-2xl font-bold tracking-tight text-slate-950">{selectedLesson.title}</h1><div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600"><span>{selectedModule?.title}</span><StatusBadge value={selectedLesson.is_published ? "published" : "draft"} /></div></div>
+                <button className="ph-action inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800" onClick={() => setEditingLesson({ mode: "edit", values: lessonDraft(selectedLesson) })} type="button"><Pencil aria-hidden="true" size={16} /> Edit Lesson</button>
               </div>
-            )}
+              <LessonMaterialsManager lessonId={selectedLesson.id} lessonTitle={selectedLesson.title} />
+            </main>
           </div>
         )}
+        <LessonEditorDialog busy={saving} moduleTitle={selectedModule?.title || "this module"} onChange={(values) => setEditingLesson((current) => ({ ...current, values }))} onClose={() => setEditingLesson(null)} onSubmit={saveLesson} state={editingLesson} />
       </section>
     </div>
   );

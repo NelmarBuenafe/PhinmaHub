@@ -40,11 +40,7 @@ const AuditLogsPage = lazy(() =>
     default: module.AuditLogsPage,
   })),
 );
-const SettingsPage = lazy(() =>
-  import("../pages/admin/ResourcePages.jsx").then((module) => ({
-    default: module.SettingsPage,
-  })),
-);
+const UserSettingsPage = lazy(() => import("../pages/common/SettingsPage.jsx"));
 const LandingPage = lazy(() => import("../pages/public/LandingPage.jsx"));
 const ChooseRolePage = lazy(() => import("../pages/public/ChooseRolePage.jsx"));
 const CoursesPage = lazy(() => import("../pages/public/CoursesPage.jsx"));
@@ -169,12 +165,14 @@ function AppRoutes() {
           <Route path="/admin/study-tools" element={<StudyToolsPage />} />
           <Route path="/admin/messages" element={<MessagesPage />} />
           <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
-          <Route path="/admin/settings" element={<SettingsPage />} />
+          <Route path="/admin/profile" element={<UserSettingsPage initialSection="account" profileOnly role="Admin" />} />
+          <Route path="/admin/settings" element={<UserSettingsPage role="Admin" />} />
         </Route>
         <Route path="/teacher" element={<ProtectedRoute requiredRole="teacher"><AuthenticatedShell role="Teacher" /></ProtectedRoute>}>
           <Route index element={<TeacherPage />} />
           <Route path="courses" element={<TeacherCourses />} />
           <Route path="profile" element={<TeacherProfilePage />} />
+          <Route path="settings" element={<UserSettingsPage role="Teacher" />} />
           <Route path="courses/create" element={<CreateCoursePage />} />
           <Route path="courses/:courseId" element={<TeacherCourseOverviewPage />} />
           <Route path="courses/:courseId/materials" element={<TeacherLessonMaterialsPage />} />
@@ -184,8 +182,10 @@ function AppRoutes() {
           <Route path="courses" element={<StudentCoursesPage />} />
           <Route path="join-course" element={<StudentJoinCoursePage />} />
           <Route path="assignments" element={<StudentAssignmentsPage />} />
+          <Route path="assignments/:assignmentId" element={<StudentAssignmentsPage />} />
           <Route path="announcements" element={<StudentAnnouncementsPage />} />
           <Route path="profile" element={<StudentProfilePage />} />
+          <Route path="settings" element={<UserSettingsPage role="Student" />} />
           <Route path="courses/:courseId" element={<StudentCoursePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />

@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-emerald-100 bg-[#f4f9f6]">
-      <div aria-hidden="true" className="absolute -right-24 top-0 size-[36rem] rounded-full bg-emerald-100/60 blur-3xl" />
+    <section className="ph-public-hero relative overflow-hidden border-b border-emerald-100 bg-[#f4f9f6]">
+      <div aria-hidden="true" className="ph-public-hero-glow absolute -right-24 top-0 size-[36rem] rounded-full bg-emerald-100/60 blur-3xl" />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1fr] lg:gap-16 lg:px-8 lg:py-24">
         <div className="ph-page-enter">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">PHINMAHUB · Learning connected</p>
@@ -32,7 +32,7 @@ function HeroSection() {
           </p>
         </div>
         <figure className="ph-card-enter relative mx-auto w-full max-w-xl">
-          <div className="ph-elevated overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="ph-public-hero-shell ph-elevated overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
                 <span className="grid size-7 place-items-center rounded-lg bg-emerald-700 text-xs text-white">P</span>
@@ -40,7 +40,7 @@ function HeroSection() {
               </div>
               <span className="text-xs font-medium text-slate-500">Student workspace</span>
             </div>
-            <div className="bg-slate-50/80 p-5 sm:p-6">
+            <div className="ph-public-hero-panel bg-slate-50/80 p-5 sm:p-6">
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs text-slate-500">Your learning, at a glance</p>
