@@ -7,7 +7,7 @@ function ProtectedRoute({ children, stage, requiredRole }) {
   const { accessDenied, loading, profile, session } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || (session && !profile)) {
     return (
       <div className="grid min-h-screen place-items-center">
         <Loading label="Checking your account..." />

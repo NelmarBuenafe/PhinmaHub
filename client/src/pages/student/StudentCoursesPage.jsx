@@ -1,8 +1,11 @@
 import { BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import Loading from "../../components/common/Loading.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
+import JoinCourseModal from "../../components/student/JoinCourseModal.jsx";
+import { useToast } from "../../contexts/toastStore.js";
 import { useCourseList } from "../../utils/useCourseList.js";
 
 function ProgressBar({ value }) {
@@ -22,6 +25,13 @@ function ProgressBar({ value }) {
 
 export default function StudentCoursesPage() {
   const { courses, error, loading, reload } = useCourseList("/student/courses");
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const toast = useToast();
+
+  function handleJoined() {
+    void reload();
+    toast.success("Course joined successfully.");
+  }
 
   return (
     <div className="min-w-0">
@@ -29,12 +39,13 @@ export default function StudentCoursesPage() {
       <section className="ph-role-page">
         <PageHeader
           action={
-            <Link
+            <button
               className="ph-action inline-flex items-center rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white shadow-sm hover:bg-emerald-800"
-              to="/student/join-course"
+              onClick={() => setJoinModalOpen(true)}
+              type="button"
             >
               + Join Course
-            </Link>
+            </button>
           }
           description="Open your active and archived courses in one place."
           eyebrow="Student workspace"
@@ -54,12 +65,13 @@ export default function StudentCoursesPage() {
             <BookOpen aria-hidden="true" className="mb-4 text-emerald-700" size={28} />
             <h2 className="font-bold text-slate-900">No courses yet</h2>
             <p className="mt-2 text-sm">Join a course with the code provided by your teacher.</p>
-            <Link
+            <button
               className="mt-4 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 font-bold text-white hover:bg-emerald-800"
-              to="/student/join-course"
+              onClick={() => setJoinModalOpen(true)}
+              type="button"
             >
               Join a Course
-            </Link>
+            </button>
           </div>
         )}
         {!loading && !error && courses.length > 0 && (
@@ -93,6 +105,11 @@ export default function StudentCoursesPage() {
           </div>
         )}
       </section>
+      <JoinCourseModal
+        onClose={() => setJoinModalOpen(false)}
+        onJoined={handleJoined}
+        open={joinModalOpen}
+      />
     </div>
   );
 }

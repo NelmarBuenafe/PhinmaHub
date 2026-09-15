@@ -70,7 +70,7 @@ export default function StudentDashboardPage() {
               </Link>
               <Link
                 className="ph-action inline-flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-white"
-                to="/student/join-course"
+                to="/student/courses"
               >
                 Join a course
               </Link>
@@ -161,7 +161,7 @@ export default function StudentDashboardPage() {
                   <div className="mt-6">
                     <p className="font-semibold text-slate-800">Your learning starts with a course.</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">Enter the join code from your teacher to get started.</p>
-                    <Link className="ph-action mt-5 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800" to="/student/join-course">
+                    <Link className="ph-action mt-5 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800" to="/student/courses">
                       Join a course
                     </Link>
                   </div>

@@ -116,6 +116,7 @@ export function AuthProvider({ children }) {
           currentSession &&
           ![
             "/auth/callback",
+            "/auth/confirm",
             "/auth/accept-invite",
             "/security-check",
           ].includes(
@@ -170,14 +171,25 @@ export function AuthProvider({ children }) {
 
   const signOut = useCallback(async () => {
     clientQueryCache.clear();
+    let logoutError = null;
     try {
       await api.post("/auth/logout");
-    } finally {
-      await supabase.auth.signOut();
-      clearAuthFlow();
-      window.sessionStorage.removeItem(DENIAL_STORAGE_KEY);
-      setAccessDenied(false);
-      clearAuthState();
+    } catch (error) {
+      logoutError = error;
+    }
+    const { error: supabaseError } = await supabase.auth.signOut();
+    clearAuthFlow();
+    window.sessionStorage.removeItem(DENIAL_STORAGE_KEY);
+    setAccessDenied(false);
+    clearAuthState();
+    const {
+      data: { session: remainingSession },
+    } = await supabase.auth.getSession();
+    if (supabaseError || remainingSession) {
+      throw supabaseError || new Error("Unable to clear the authenticated session.");
+    }
+    if (logoutError && import.meta.env.DEV) {
+      console.warn("Server logout cleanup failed after local session termination.", logoutError);
     }
   }, [clearAuthState]);
 
@@ -194,6 +206,7 @@ export function AuthProvider({ children }) {
       profile,
       session,
       signOut,
+      terminateSession: signOut,
       updateProfile,
       validateSession,
       validateIdentity,

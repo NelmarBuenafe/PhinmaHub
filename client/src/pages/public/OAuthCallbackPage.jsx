@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import AuthShell from "../../components/common/AuthShell.jsx";
 import Loading from "../../components/common/Loading.jsx";
 import { useAuth } from "../../contexts/authContext.js";
-import { getAuthFlow } from "../../utils/authFlow.js";
+import { clearAuthFlow, getAuthFlow } from "../../utils/authFlow.js";
 import { getFriendlyAuthError } from "../../utils/auth.js";
+import { getRoleMismatchDetails } from "../../utils/roleMismatch.js";
 import api from "../../services/api.js";
 
 function OAuthCallbackPage() {
-  const { signOut, validateIdentity, validateSession } = useAuth();
+  const { signOut, terminateSession, validateIdentity, validateSession } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
@@ -28,6 +29,7 @@ function OAuthCallbackPage() {
           try {
             const activation = await api.post("/auth/registration/activate");
             await validateSession();
+            clearAuthFlow();
             if (active) {
               navigate(activation.data.destination, { replace: true });
             }
@@ -69,13 +71,9 @@ function OAuthCallbackPage() {
             flow: flow.mode,
             selectedRole: flow.role,
           });
-          const roleNotice =
-            result.roleMismatch && result.approvedRole
-              ? `Your account is registered as a ${result.approvedRole}.`
-              : null;
+          clearAuthFlow();
           navigate(result.destination, {
             replace: true,
-            state: { roleNotice },
           });
           return;
         } catch (requestError) {
@@ -84,6 +82,23 @@ function OAuthCallbackPage() {
           if (code === "AUTH_REQUIRED" && attempt < 11) {
             await new Promise((resolve) => window.setTimeout(resolve, 250));
             continue;
+          }
+          if (code === "ROLE_MISMATCH") {
+            const actualRole = requestError.response?.data?.approvedRole;
+            const details = getRoleMismatchDetails(actualRole, flow.role);
+            if (details) {
+              try {
+                await terminateSession();
+              } catch {
+                setError("We couldn't securely sign out this account. Please try again.");
+                return;
+              }
+              navigate(`/auth/${flow.role}`, {
+                replace: true,
+                state: { roleMismatchRole: actualRole },
+              });
+              return;
+            }
           }
           if (
             ["INVALID_DOMAIN", "INVALID_PROVIDER", "PROFILE_MISSING"].includes(
@@ -113,7 +128,7 @@ function OAuthCallbackPage() {
     return () => {
       active = false;
     };
-  }, [navigate, signOut, validateIdentity, validateSession]);
+  }, [navigate, signOut, terminateSession, validateIdentity, validateSession]);
 
   return (
     <AuthShell

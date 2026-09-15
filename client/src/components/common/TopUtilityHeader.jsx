@@ -16,7 +16,6 @@ export default function TopUtilityHeader({ role, drawerOpen, drawerId, onOpenDra
     : pathname === `${base}/assignments` ? "Assignments"
     : pathname.startsWith(`${base}/assignments/`) ? "Assignment"
     : pathname === `${base}/announcements` ? "Announcements"
-    : pathname === `${base}/join-course` ? "Join Course"
     : pathname === `${base}/settings` ? "Settings" : "My Profile";
 
   return (

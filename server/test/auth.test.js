@@ -157,10 +157,24 @@ test("active users can access only their approved role", () => {
 test("post-CAPTCHA result uses database status and approved role", () => {
   assert.deepEqual(
     getAuthenticationResult(
+      { account_status: "active", approved_role: "student" },
+      { flow: "login", selectedRole: "student" },
+    ),
+    { destination: "/student", roleMismatch: false },
+  );
+  assert.deepEqual(
+    getAuthenticationResult(
+      { account_status: "active", approved_role: "teacher" },
+      { flow: "login", selectedRole: "teacher" },
+    ),
+    { destination: "/teacher", roleMismatch: false },
+  );
+  assert.deepEqual(
+    getAuthenticationResult(
       { account_status: "active", approved_role: "teacher" },
       { flow: "login", selectedRole: "student" },
     ),
-    { destination: "/teacher", roleMismatch: true },
+    { destination: null, roleMismatch: true },
   );
   assert.deepEqual(
     getAuthenticationResult(

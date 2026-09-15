@@ -49,6 +49,9 @@ const PolicyPage = lazy(() => import("../pages/public/PolicyPage.jsx"));
 const OAuthCallbackPage = lazy(
   () => import("../pages/public/OAuthCallbackPage.jsx"),
 );
+const EmailConfirmationPage = lazy(
+  () => import("../pages/public/EmailConfirmationPage.jsx"),
+);
 const PendingApprovalPage = lazy(
   () => import("../pages/public/PendingApprovalPage.jsx"),
 );
@@ -67,9 +70,6 @@ const UnauthorizedPage = lazy(
 );
 const StudentPage = lazy(workspaceRouteImports.studentDashboard);
 const StudentCoursesPage = lazy(workspaceRouteImports.studentCourses);
-const StudentJoinCoursePage = lazy(
-  () => import("../pages/student/StudentJoinCoursePage.jsx"),
-);
 const StudentAssignmentsPage = lazy(workspaceRouteImports.studentAssignments);
 const StudentAnnouncementsPage = lazy(
   () => import("../pages/student/StudentAnnouncementsPage.jsx"),
@@ -111,6 +111,7 @@ function AppRoutes() {
           element={<Navigate to="/auth/admin" replace />}
         />
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+        <Route path="/auth/confirm" element={<EmailConfirmationPage />} />
         <Route path="/auth/accept-invite" element={<AcceptInvitePage />} />
         <Route
           path="/security-check"
@@ -180,7 +181,6 @@ function AppRoutes() {
         <Route path="/student" element={<ProtectedRoute requiredRole="student"><AuthenticatedShell role="Student" /></ProtectedRoute>}>
           <Route index element={<StudentPage />} />
           <Route path="courses" element={<StudentCoursesPage />} />
-          <Route path="join-course" element={<StudentJoinCoursePage />} />
           <Route path="assignments" element={<StudentAssignmentsPage />} />
           <Route path="assignments/:assignmentId" element={<StudentAssignmentsPage />} />
           <Route path="announcements" element={<StudentAnnouncementsPage />} />

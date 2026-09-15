@@ -27,6 +27,10 @@ const emailCheckSchema = z
   .object({ email: z.string().trim().email() })
   .strict();
 
+function roleLabel(role) {
+  return `${role.charAt(0).toUpperCase()}${role.slice(1)}`;
+}
+
 export async function checkRegistrationEmail(request, response, next) {
   const parsedBody = emailCheckSchema.safeParse(request.body);
   if (
@@ -168,6 +172,16 @@ export function validateAuthentication(request, response) {
     selectedRole,
   });
 
+  if (roleMismatch) {
+    response.clearCookie(CAPTCHA_COOKIE_NAME, captchaClearCookieOptions());
+    return response.status(409).json({
+      success: false,
+      code: "ROLE_MISMATCH",
+      message: `This account is registered as a ${roleLabel(profile.approved_role)}.`,
+      approvedRole: profile.approved_role,
+    });
+  }
+
   if (flow === "login" || !destination.startsWith("/register/")) {
     response.clearCookie(CAPTCHA_COOKIE_NAME, captchaClearCookieOptions());
   }
@@ -180,7 +194,7 @@ export function validateAuthentication(request, response) {
     },
     profile,
     destination,
-    roleMismatch,
+    roleMismatch: false,
     approvedRole: profile.approved_role,
   });
 }

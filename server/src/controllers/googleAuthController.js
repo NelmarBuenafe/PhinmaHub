@@ -21,6 +21,7 @@ function roleMismatch(response, existingRole) {
     success: false,
     code: "ROLE_MISMATCH",
     message: `This account is already registered as a ${roleLabel(existingRole)}.`,
+    approvedRole: existingRole,
   });
 }
 

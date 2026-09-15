@@ -96,10 +96,11 @@ export function getAuthenticationResult(profile, { flow, selectedRole }) {
     return { destination: "/unauthorized", roleMismatch: false };
   }
 
-  return {
-    destination: `/${profile.approved_role}`,
-    roleMismatch: selectedRole !== profile.approved_role,
-  };
+  if (selectedRole !== profile.approved_role) {
+    return { destination: null, roleMismatch: true };
+  }
+
+  return { destination: `/${profile.approved_role}`, roleMismatch: false };
 }
 
 export function canAccessRole(profile, requiredRole) {

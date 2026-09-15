@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { CircleAlert } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   Navigate,
@@ -8,6 +9,7 @@ import {
 } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout.jsx";
 import AuthTabs from "../../components/auth/AuthTabs.jsx";
+import Dialog from "../../components/common/Dialog.jsx";
 import FormField from "../../components/auth/FormField.jsx";
 import GoogleAuthButton from "../../components/auth/GoogleAuthButton.jsx";
 import MathCaptcha from "../../components/auth/MathCaptcha.jsx";
@@ -18,9 +20,12 @@ import { useAuth } from "../../contexts/authContext.js";
 import api from "../../services/api.js";
 import { supabase } from "../../services/supabase.js";
 import { getFriendlyAuthError } from "../../utils/auth.js";
+import { getConfirmedLoginRole } from "../../utils/confirmationFlow.js";
+import { getRoleMismatchDetails } from "../../utils/roleMismatch.js";
 import { useToast } from "../../contexts/toastStore.js";
 import {
   clearRegistrationDraft,
+  clearAuthFlow,
   getRegistrationDraft,
   saveAuthFlow,
   saveRegistrationDraft,
@@ -34,11 +39,12 @@ function RoleAuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const captchaRef = useRef(null);
-  const { beginGoogleSignIn, validateSession } = useAuth();
+  const { beginGoogleSignIn, terminateSession, validateSession } = useAuth();
   const isAdmin = role === "admin";
   const validRole = isAdmin || publicRoles.has(role);
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
+  const [checkingAccount, setCheckingAccount] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(
     location.state?.emailVerified
@@ -46,6 +52,11 @@ function RoleAuthPage() {
       : "",
   );
   const [errors, setErrors] = useState({});
+  const mismatchRoleFromNavigation = location.state?.roleMismatchRole;
+  const roleMismatch =
+    mismatchRoleFromNavigation === role
+      ? null
+      : getRoleMismatchDetails(mismatchRoleFromNavigation, role);
   const [values, setValues] = useState({
     firstName: "",
     middleName: "",
@@ -65,7 +76,16 @@ function RoleAuthPage() {
     remember: false,
   });
 
+  useEffect(() => {
+    if (publicRoles.has(role)) saveAuthFlow(role, "login", "email");
+  }, [role]);
+
   if (!validRole) return <Navigate to="/choose-role" replace />;
+
+  function dismissRoleMismatch() {
+    clearLoginForm();
+    navigate(`${location.pathname}${location.search}`, { replace: true });
+  }
 
   const roleLabel = `${role.charAt(0).toUpperCase()}${role.slice(1)}`;
 
@@ -76,6 +96,38 @@ function RoleAuthPage() {
       [name]: type === "checkbox" ? checked : value,
     }));
     setErrors((current) => ({ ...current, [name]: "" }));
+  }
+
+  function clearLoginForm() {
+    setValues((current) => ({
+      ...current,
+      confirmPassword: "",
+      email: "",
+      password: "",
+      remember: false,
+    }));
+    setErrors({});
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleRoleMismatch(actualRole) {
+    const details = getRoleMismatchDetails(actualRole, role);
+    if (!details) return false;
+    try {
+      await terminateSession();
+    } catch {
+      const message = "We couldn't securely sign out this account. Please try again.";
+      setError(message);
+      toast.error(message);
+      return false;
+    }
+    clearLoginForm();
+    navigate(`/auth/${role}`, {
+      replace: true,
+      state: { roleMismatchRole: actualRole },
+    });
+    return true;
   }
 
   function validateRegistration() {
@@ -117,6 +169,7 @@ function RoleAuthPage() {
       );
       clearRegistrationDraft();
       await validateSession();
+      clearAuthFlow();
       navigate(registration.data.destination, { replace: true });
       return;
     }
@@ -134,16 +187,14 @@ function RoleAuthPage() {
         approvedRole: activation.data.profile?.approved_role,
       };
     }
-    const roleNotice =
-      result.roleMismatch && result.approvedRole
-        ? `Your account is registered as a ${result.approvedRole}.`
-        : null;
-    navigate(result.destination, { replace: true, state: { roleNotice } });
+    clearAuthFlow();
+    navigate(result.destination, { replace: true });
   }
 
   async function submitLogin(event) {
     event.preventDefault();
     setLoading(true);
+    setCheckingAccount(false);
     setError("");
     setSuccess("");
     try {
@@ -153,8 +204,12 @@ function RoleAuthPage() {
         password: values.password,
       });
       if (signInError) throw signInError;
+      setCheckingAccount(true);
       await finishLogin();
     } catch (requestError) {
+      if (requestError.response?.data?.code === "ROLE_MISMATCH") {
+        if (await handleRoleMismatch(requestError.response.data.approvedRole)) return;
+      }
       if (requestError.response?.data?.code === "INVALID_DOMAIN") {
         navigate("/school-email-required", { replace: true });
         return;
@@ -163,6 +218,7 @@ function RoleAuthPage() {
       setError(message);
       toast.error(message);
     } finally {
+      setCheckingAccount(false);
       setLoading(false);
     }
   }
@@ -200,7 +256,7 @@ function RoleAuthPage() {
         email: values.email.trim(),
         password: values.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
           data: {
             first_name: values.firstName.trim(),
             middle_name: values.middleName.trim() || null,
@@ -222,8 +278,13 @@ function RoleAuthPage() {
       if (data.session) {
         const activation = await api.post("/auth/registration/activate");
         clearRegistrationDraft();
-        await validateSession();
-        navigate(activation.data.destination, { replace: true });
+        const confirmedRole = getConfirmedLoginRole(activation.data.profile);
+        if (!confirmedRole) throw new Error("Unable to determine the verified account role.");
+        await terminateSession();
+        navigate(`/auth/${confirmedRole}`, {
+          replace: true,
+          state: { emailVerified: true },
+        });
       } else {
         toast.success("Account created. Please check your email to verify your account.");
         navigate("/pending", {
@@ -350,7 +411,7 @@ function RoleAuthPage() {
             disabled={loading}
             type="submit"
           >
-            {loading ? "Logging in…" : `Login as ${roleLabel}`}
+            {loading ? checkingAccount ? "Checking account..." : "Signing in..." : `Login as ${roleLabel}`}
           </button>
         </form>
       )}
@@ -433,6 +494,15 @@ function RoleAuthPage() {
             : `Already have an account? Login as a ${roleLabel}`}
         </button>
       )}
+      <Dialog
+        description={roleMismatch?.message}
+        footer={<><button className="ph-action rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={dismissRoleMismatch} type="button">Try another account</button><button className="ph-action rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800" onClick={() => { clearLoginForm(); navigate(roleMismatch.destination, { replace: true }); }} type="button">Go to {roleMismatch?.label} Login</button></>}
+        onClose={dismissRoleMismatch}
+        open={Boolean(roleMismatch)}
+        size="compact"
+        title={<span className="flex items-center gap-3"><span aria-hidden="true" className="grid size-10 place-items-center rounded-full bg-red-50 text-red-700"><CircleAlert size={21} /></span>Wrong account type</span>}
+        wide={false}
+      />
     </AuthLayout>
   );
 }

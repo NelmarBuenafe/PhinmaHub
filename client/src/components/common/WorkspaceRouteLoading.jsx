@@ -13,7 +13,6 @@ export default function WorkspaceRouteLoading({ role }) {
     : pathname.endsWith("/assignments") ? "Assignments"
     : pathname.endsWith("/profile") ? "My Profile"
     : pathname.endsWith("/announcements") ? "Announcements"
-    : pathname.endsWith("/join-course") ? "Join Course"
     : pathname.endsWith("/materials") ? "Lesson Materials"
     : role === "Student" ? "Course Learning" : "Manage Course";
   const variant = pathname === base ? (role === "Teacher" ? "teacher-dashboard" : "dashboard")
