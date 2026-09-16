@@ -10,12 +10,13 @@ import {
   getTeacherCourse,
 } from "../controllers/courseController.js";
 import {
-  completeLesson,
+  createLessonSection,
   createAssignment,
   deleteAssignment,
   createLesson,
   createModule,
   deleteLesson,
+  deleteLessonSection,
   deleteModule,
   enrollStudent,
   gradeSubmission,
@@ -23,13 +24,17 @@ import {
   listCourseAssignments,
   listCourseModules,
   listCourseStudents,
+  listLessonSections,
   listStudentAssignments,
   removeEnrollment,
+  reorderLessonSections,
+  saveSectionReadingProgress,
   saveStudentSubmission,
   studentLearning,
   updateAssignment,
   updateCourseSettings,
   updateLesson,
+  updateLessonSection,
   updateModule,
 } from "../controllers/learningController.js";
 import {
@@ -38,7 +43,9 @@ import {
   discardUploadedMaterial,
   deleteLessonMaterial,
   listTeacherLessonMaterials,
+  saveStudentVideoProgress,
   studentMaterialAccess,
+  teacherMaterialAccess,
   updateLessonMaterial,
 } from "../controllers/lessonMaterialController.js";
 import {
@@ -79,8 +86,9 @@ studentCourseRouter.get("/profile", getStudentProfile);
 studentCourseRouter.get("/courses", listStudentCourses);
 studentCourseRouter.post("/courses/join", joinStudentCourse);
 studentCourseRouter.get("/courses/:courseId/learning", studentLearning);
+studentCourseRouter.patch("/sections/:sectionId/reading-progress", saveSectionReadingProgress);
+studentCourseRouter.patch("/materials/:materialId/video-progress", saveStudentVideoProgress);
 studentCourseRouter.get("/courses/:courseId/assignments", listStudentAssignments);
-studentCourseRouter.post("/lessons/:lessonId/complete", completeLesson);
 studentCourseRouter.get("/materials/:materialId/access", studentMaterialAccess);
 studentCourseRouter.put("/assignments/:assignmentId/submission", saveStudentSubmission);
 studentCourseRouter.get("/assignments/:assignmentId/detail", getStudentAssignmentDetail);
@@ -114,12 +122,18 @@ teacherCourseRouter.delete("/modules/:moduleId", deleteModule);
 teacherCourseRouter.post("/modules/:moduleId/lessons", createLesson);
 teacherCourseRouter.put("/lessons/:lessonId", updateLesson);
 teacherCourseRouter.delete("/lessons/:lessonId", deleteLesson);
+teacherCourseRouter.get("/lessons/:lessonId/sections", listLessonSections);
+teacherCourseRouter.post("/lessons/:lessonId/sections", createLessonSection);
+teacherCourseRouter.put("/lessons/:lessonId/sections/order", reorderLessonSections);
+teacherCourseRouter.put("/sections/:sectionId", updateLessonSection);
+teacherCourseRouter.delete("/sections/:sectionId", deleteLessonSection);
 teacherCourseRouter.get("/lessons/:lessonId/materials", listTeacherLessonMaterials);
 teacherCourseRouter.post("/lessons/:lessonId/materials/upload-url", createUploadUrl);
 teacherCourseRouter.delete("/lessons/:lessonId/materials/upload", discardUploadedMaterial);
 teacherCourseRouter.post("/lessons/:lessonId/materials", createLessonMaterial);
 teacherCourseRouter.patch("/materials/:materialId", updateLessonMaterial);
 teacherCourseRouter.delete("/materials/:materialId", deleteLessonMaterial);
+teacherCourseRouter.get("/materials/:materialId/access", teacherMaterialAccess);
 teacherCourseRouter.get("/courses/:courseId/assignments", listCourseAssignments);
 teacherCourseRouter.post("/courses/:courseId/assignments", createAssignment);
 teacherCourseRouter.put("/assignments/:assignmentId", updateAssignment);

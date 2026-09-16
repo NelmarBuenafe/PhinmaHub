@@ -56,6 +56,16 @@ Course join codes are intentionally excluded from direct `anon` and `authenticat
 
 Run `phase7-submission-attachments.sql` after the existing schema and Phase 6 lesson-material migration. It adds normalized `submission_attachments` metadata and the private `assignment-submissions` bucket. The Node server validates ownership, enrollment, lifecycle state, file type, MIME type, size, and link protocol before issuing signed upload or read URLs. The migration is required before Student attachment uploads can work.
 
+## Phase 8 lesson progress
+
+Run `phase8-lesson-progress.sql`, then `phase9-lesson-sections.sql`. Phase 9 backfills a `Lesson Content` section for every lesson, assigns existing materials to it without awarding completion, and adds `lesson_material_progress` plus `lesson_section_reading_progress`. Reading contributes 40% when a section also has required materials (or 100% for content-only sections), using persisted, time-qualified checkpoints. Simply opening a document, video, link, or Google Form never awards credit.
+
+Required YouTube and uploaded MP4/WebM videos play inline and store compact merged watched ranges in `lesson_material_progress`; 95% unique watched coverage is required before they complete. Uploaded videos stay in the private `lesson-materials` bucket and receive a short-lived signed URL only after enrollment is checked. The server allows video files up to 100 MB (documents remain capped at 10 MB). Re-run the idempotent Phase 9 migration after pulling video-progress changes.
+
+## Phase 9 lesson sections
+
+Run `phase9-lesson-sections.sql` after Phase 6 and Phase 8. It adds ordered, publishable lesson sections and section-level progress without removing `lessons.content` or `lesson_materials.lesson_id`. Each existing lesson receives one **Lesson Content** section and its existing materials are attached to it. Historical materials are marked non-required because their previous use was not verifiable; newly added materials default to required metadata.
+
 ## Phase 3 authentication update
 
 Projects that applied `schema.sql` before Phase 3 must run `phase3-auth.sql` once in SQL Editor. It makes `requested_role` optional for new Google users so the application can direct them to role selection. It does not change existing requested roles, approved roles, or account statuses.

@@ -153,20 +153,61 @@ create table if not exists public.lessons (
   constraint lessons_module_position_unique unique (module_id, display_position)
 );
 
+create table if not exists public.lesson_sections (
+  id uuid primary key default gen_random_uuid(),
+  lesson_id uuid not null references public.lessons(id) on delete cascade,
+  title text not null,
+  content text,
+  display_position integer not null default 0,
+  is_required boolean not null default true,
+  is_published boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint lesson_sections_title_not_blank check (btrim(title) <> ''),
+  constraint lesson_sections_position_nonnegative check (display_position >= 0),
+  constraint lesson_sections_lesson_position_unique unique (lesson_id, display_position)
+);
+
+create index if not exists lesson_sections_lesson_sort_idx
+  on public.lesson_sections (lesson_id, display_position, created_at);
+
 create table if not exists public.lesson_progress (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
   lesson_id uuid not null references public.lessons(id) on delete cascade,
+  progress_percent integer not null default 0,
   is_completed boolean not null default false,
   completed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint lesson_progress_student_lesson_unique unique (student_id, lesson_id),
+  constraint lesson_progress_percent_in_range check (progress_percent between 0 and 100),
   constraint lesson_progress_completion_consistent check (
     (is_completed and completed_at is not null)
     or (not is_completed and completed_at is null)
   )
 );
+
+create table if not exists public.lesson_section_progress (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  section_id uuid not null references public.lesson_sections(id) on delete cascade,
+  progress_percent integer not null default 0,
+  is_completed boolean not null default false,
+  completed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint lesson_section_progress_student_section_unique unique (student_id, section_id),
+  constraint lesson_section_progress_percent_in_range check (progress_percent between 0 and 100),
+  constraint lesson_section_progress_completion_consistent check (
+    (is_completed and completed_at is not null)
+    or (not is_completed and completed_at is null)
+  )
+);
+
+
+create index if not exists lesson_section_progress_student_idx
+  on public.lesson_section_progress (student_id, section_id);
 
 create table if not exists public.assignments (
   id uuid primary key default gen_random_uuid(),
@@ -501,7 +542,39 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  new.progress_percent := greatest(0, least(100, coalesce(new.progress_percent, 0)));
+  if tg_op = 'UPDATE' then
+    new.progress_percent := greatest(old.progress_percent, new.progress_percent);
+  end if;
+  if new.progress_percent = 100 then
+    new.is_completed := true;
+  elsif tg_op = 'UPDATE' and old.is_completed then
+    new.progress_percent := 100;
+    new.is_completed := true;
+  end if;
   if new.is_completed then
+    new.completed_at := coalesce(new.completed_at, now());
+  else
+    new.completed_at := null;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function private.normalize_lesson_section_progress()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.progress_percent := greatest(0, least(100, coalesce(new.progress_percent, 0)));
+  if tg_op = 'UPDATE' then
+    new.progress_percent := greatest(old.progress_percent, new.progress_percent);
+  end if;
+  new.is_completed := new.progress_percent = 100
+    or (tg_op = 'UPDATE' and old.is_completed);
+  if new.is_completed then
+    new.progress_percent := 100;
     new.completed_at := coalesce(new.completed_at, now());
   else
     new.completed_at := null;
@@ -593,7 +666,7 @@ declare
 begin
   foreach table_name in array array[
     'profiles', 'student_profiles', 'teacher_profiles', 'courses', 'enrollments',
-    'course_modules', 'lessons', 'lesson_progress', 'assignments', 'submissions', 'submission_attachments',
+    'course_modules', 'lessons', 'lesson_sections', 'lesson_progress', 'lesson_section_progress', 'assignments', 'submissions', 'submission_attachments',
     'announcements', 'study_tools', 'contact_messages'
   ] loop
     if not exists (
@@ -621,6 +694,17 @@ begin
     create trigger protect_profile_security_fields
       before update on public.profiles
       for each row execute function private.protect_profile_security_fields();
+  end if;
+
+  if not exists (
+    select 1 from pg_trigger
+    where tgname = 'normalize_lesson_section_progress'
+      and tgrelid = 'public.lesson_section_progress'::regclass
+      and not tgisinternal
+  ) then
+    create trigger normalize_lesson_section_progress
+      before insert or update on public.lesson_section_progress
+      for each row execute function private.normalize_lesson_section_progress();
   end if;
 
   if not exists (
@@ -672,14 +756,14 @@ end $$;
 
 revoke all on table
   public.profiles, public.student_profiles, public.teacher_profiles, public.courses,
-  public.enrollments, public.course_modules, public.lessons, public.lesson_progress,
+  public.enrollments, public.course_modules, public.lessons, public.lesson_sections, public.lesson_progress, public.lesson_section_progress,
   public.assignments, public.submissions, public.submission_attachments, public.announcements, public.study_tools,
   public.contact_messages, public.audit_logs
 from anon, authenticated;
 
 grant select, insert, update, delete on table
   public.profiles, public.student_profiles, public.teacher_profiles,
-  public.enrollments, public.course_modules, public.lessons, public.lesson_progress,
+  public.enrollments, public.course_modules, public.lessons, public.lesson_sections, public.lesson_progress, public.lesson_section_progress,
   public.assignments, public.submissions, public.submission_attachments, public.announcements, public.study_tools
 to authenticated;
 
@@ -751,11 +835,20 @@ begin
       ('Teachers manage owned lessons', 'lessons', 'all', 'authenticated', 'private.owns_module(module_id)', 'private.owns_module(module_id)'),
       ('Enrolled students view published lessons', 'lessons', 'select', 'authenticated', 'is_published and private.is_enrolled_in_lesson(id)', null),
 
+      ('Admins manage lesson sections', 'lesson_sections', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
+      ('Teachers manage owned lesson sections', 'lesson_sections', 'all', 'authenticated', 'private.owns_module((select module_id from public.lessons where id = lesson_id))', 'private.owns_module((select module_id from public.lessons where id = lesson_id))'),
+      ('Enrolled students view published lesson sections', 'lesson_sections', 'select', 'authenticated', 'is_published and private.is_enrolled_in_lesson(lesson_id)', null),
+
       ('Admins manage lesson progress', 'lesson_progress', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
       ('Teachers view progress in owned courses', 'lesson_progress', 'select', 'authenticated', 'private.owns_module((select module_id from public.lessons where id = lesson_id))', null),
       ('Students view own lesson progress', 'lesson_progress', 'select', 'authenticated', '(select auth.uid()) = student_id', null),
       ('Students insert own lesson progress', 'lesson_progress', 'insert', 'authenticated', null, '(select auth.uid()) = student_id and private.is_enrolled_in_lesson(lesson_id)'),
       ('Students update own lesson progress', 'lesson_progress', 'update', 'authenticated', '(select auth.uid()) = student_id', '(select auth.uid()) = student_id and private.is_enrolled_in_lesson(lesson_id)'),
+
+      ('Admins manage lesson section progress', 'lesson_section_progress', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
+      ('Teachers view section progress in owned courses', 'lesson_section_progress', 'select', 'authenticated', 'private.owns_module((select l.module_id from public.lesson_sections s join public.lessons l on l.id = s.lesson_id where s.id = section_id))', null),
+      ('Students manage own lesson section progress', 'lesson_section_progress', 'all', 'authenticated', '(select auth.uid()) = student_id', '(select auth.uid()) = student_id and exists (select 1 from public.lesson_sections s where s.id = section_id and private.is_enrolled_in_lesson(s.lesson_id))'),
+
 
       ('Admins manage assignments', 'assignments', 'all', 'authenticated', 'private.is_admin()', 'private.is_admin()'),
       ('Teachers manage owned assignments', 'assignments', 'all', 'authenticated', 'private.owns_course(course_id)', 'private.owns_course(course_id)'),

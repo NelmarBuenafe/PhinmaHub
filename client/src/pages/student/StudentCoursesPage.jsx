@@ -79,7 +79,7 @@ export default function StudentCoursesPage() {
             {courses.map((course) => {
               const total = course.lesson_count || 0;
               const completed = course.completed_lesson_count || 0;
-              const progress = total ? Math.round((completed / total) * 100) : 0;
+              const progress = course.progress ?? (total ? Math.round((completed / total) * 100) : 0);
               return (
                 <article className="ph-interactive-card ph-course-card" key={course.id}>
                   <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">{course.course_code}</p>

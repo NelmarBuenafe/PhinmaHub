@@ -11,7 +11,7 @@ function PublicFooter() {
             Phinma<span className="text-emerald-400">Hub</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-6 text-slate-400">
-            An accessible learning platform for PHINMA students and teachers.
+            A connected learning platform for PHINMA students and teachers.
           </p>
         </div>
         <div>
@@ -32,7 +32,7 @@ function PublicFooter() {
           </nav>
         </div>
         <div>
-          <h2 className="font-black text-white">Learning resources</h2>
+          <h2 className="font-black text-white">Learning</h2>
           <nav
             aria-label="Learning resource links"
             className="mt-4 flex flex-col gap-3 text-sm"
@@ -40,20 +40,15 @@ function PublicFooter() {
             <a className="hover:text-emerald-300" href="/#study-tools">
               Study Tools
             </a>
-            <Link className="hover:text-emerald-300" to="/courses">
-              Programming Lessons
-            </Link>
-            <Link className="hover:text-emerald-300" to="/courses">
-              Practice Activities
-            </Link>
           </nav>
         </div>
         <div>
-          <h2 className="font-black text-white">Contact</h2>
-          <address className="mt-4 space-y-2 text-sm not-italic text-slate-400">
-            <p>PHINMA campus support office</p>
-            <p>Contact details will be published after institutional confirmation.</p>
-          </address>
+          <h2 className="font-black text-white">Support</h2>
+          <nav aria-label="Support links" className="mt-4 flex flex-col gap-3 text-sm text-slate-400">
+            <a className="hover:text-emerald-300" href="/#contact">Contact</a>
+            <Link className="hover:text-emerald-300" to="/privacy-policy">Privacy Policy</Link>
+            <Link className="hover:text-emerald-300" to="/terms-of-use">Terms of Use</Link>
+          </nav>
         </div>
       </div>
       <div className="border-t border-slate-800">

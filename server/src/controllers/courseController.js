@@ -127,7 +127,7 @@ async function hydrateCourses(courses, studentId = null) {
     studentId && lessons.length
       ? await supabase
           .from("lesson_progress")
-          .select("lesson_id,is_completed")
+          .select("lesson_id,progress_percent,is_completed")
           .eq("student_id", studentId)
           .in(
             "lesson_id",
@@ -151,9 +151,11 @@ async function hydrateCourses(courses, studentId = null) {
   }
 
   const completedCounts = new Map();
+  const progressTotals = new Map();
   for (const item of progressResult.data || []) {
-    if (!item.is_completed) continue;
     const courseId = lessonCourse.get(item.lesson_id);
+    progressTotals.set(courseId, (progressTotals.get(courseId) || 0) + (item.progress_percent || 0));
+    if (!item.is_completed) continue;
     completedCounts.set(courseId, (completedCounts.get(courseId) || 0) + 1);
   }
 
@@ -164,6 +166,7 @@ async function hydrateCourses(courses, studentId = null) {
     ...(studentId
       ? { completed_lesson_count: completedCounts.get(course.id) || 0 }
       : {}),
+    ...(studentId ? { progress: lessonCounts.get(course.id) ? Math.round((progressTotals.get(course.id) || 0) / lessonCounts.get(course.id)) : 0 } : {}),
   }));
 }
 

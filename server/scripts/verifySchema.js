@@ -14,7 +14,10 @@ const requiredTables = {
     "id,course_id,student_id,status,enrolled_at,created_at,updated_at",
   course_modules: "id,course_id,title,description,display_position",
   lessons: "id,module_id,title,is_published",
-  lesson_progress: "id,student_id,lesson_id,is_completed",
+  lesson_progress: "id,student_id,lesson_id,progress_percent,is_completed",
+  lesson_sections: "id,lesson_id,title,content,display_position,is_required,is_published",
+  lesson_material_progress: "id,student_id,material_id,progress_percent,is_completed,watched_ranges,last_position_seconds",
+  lesson_section_reading_progress: "id,student_id,section_id,progress_percent",
   assignments: "id,course_id,title,is_published",
   submissions: "id,assignment_id,student_id,status",
   submission_attachments:
@@ -27,7 +30,7 @@ const requiredTables = {
   course_categories:
     "id,name,description,color,icon,is_active,created_at,updated_at",
   lesson_materials:
-    "id,lesson_id,material_type,title,description,storage_path,external_url,file_name,mime_type,file_size,sort_order,created_at,updated_at",
+    "id,lesson_id,section_id,is_required,material_type,title,description,storage_path,external_url,file_name,mime_type,file_size,sort_order,created_at,updated_at",
 };
 
 const supabase = createClient(

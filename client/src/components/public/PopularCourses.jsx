@@ -11,19 +11,18 @@ function PopularCourses() {
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-              Start learning
+            <p className="ph-landing-eyebrow text-emerald-700">
+              Explore learning
             </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-              Popular Courses
+            <h2 className="ph-section-title mt-4">
+              Available Courses
             </h2>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              Explore practical technology lessons designed to build strong
-              foundations and useful skills.
+            <p className="ph-section-copy">
+              Explore published courses available through PhinmaHub.
             </p>
           </div>
           <Link
-            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 font-bold text-slate-800 hover:border-emerald-600 hover:text-emerald-800"
+            className="ph-cta-secondary shrink-0"
             to="/courses"
           >
             Browse All Courses
@@ -33,7 +32,7 @@ function PopularCourses() {
           {loading && <p className="text-slate-600">Loading courses...</p>}
           {error && <p className="text-red-700">{error}</p>}
           {!loading && !error && featuredCourses.length === 0 && (
-            <p className="text-slate-600">No public courses are available yet.</p>
+            <p className="rounded-xl border border-slate-200 bg-white px-5 py-6 text-sm text-slate-600">No public courses are available yet. Please check back soon.</p>
           )}
           {!loading &&
             !error &&

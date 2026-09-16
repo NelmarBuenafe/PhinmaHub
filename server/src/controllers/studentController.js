@@ -111,7 +111,7 @@ async function loadStudentData(studentId, announcementLimit = 5) {
   const progressResult = lessons.length
     ? await supabase
         .from("lesson_progress")
-        .select("lesson_id,is_completed,completed_at")
+        .select("lesson_id,progress_percent,is_completed,completed_at")
         .eq("student_id", studentId)
         .in("lesson_id", lessons.map((lesson) => lesson.id))
     : { data: [], error: null };
@@ -130,6 +130,12 @@ async function loadStudentData(studentId, announcementLimit = 5) {
     (item) => item.is_completed && lessonCourseById.has(item.lesson_id),
   );
   const completedLessonsByCourse = new Map();
+  const progressTotalsByCourse = new Map();
+  const lessonProgressById = new Map((progressResult.data || []).map((item) => [item.lesson_id, item.progress_percent || 0]));
+  for (const lesson of lessons) {
+    const courseId = lessonCourseById.get(lesson.id);
+    progressTotalsByCourse.set(courseId, (progressTotalsByCourse.get(courseId) || 0) + (lessonProgressById.get(lesson.id) || 0));
+  }
   for (const item of completedLessons) {
     const courseId = lessonCourseById.get(item.lesson_id);
     completedLessonsByCourse.set(
@@ -184,7 +190,7 @@ async function loadStudentData(studentId, announcementLimit = 5) {
       teacher_name: teachers.get(course.teacher_id) || "Faculty instructor",
       total_lessons: totalLessons,
       completed_lessons: completed,
-      progress: progressPercent(completed, totalLessons),
+      progress: totalLessons ? Math.round((progressTotalsByCourse.get(course.id) || 0) / totalLessons) : 0,
     };
   });
 

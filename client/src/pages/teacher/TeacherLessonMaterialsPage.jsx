@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Loading from "../../components/common/Loading.jsx";
 import StatusBadge from "../../components/common/StatusBadge.jsx";
-import LessonMaterialsManager from "../../components/teacher/LessonMaterialsManager.jsx";
+import LessonSectionsManager from "../../components/teacher/LessonSectionsManager.jsx";
 import { LessonEditorDialog } from "../../components/teacher/TeacherCourseOverviewTabs.jsx";
 import api from "../../services/api.js";
 import { useApiQuery } from "../../utils/useApiQuery.js";
@@ -90,7 +90,7 @@ function TeacherLessonMaterialsContent({ courseId }) {
                 <div className="min-w-0"><h1 className="break-words text-2xl font-bold tracking-tight text-slate-950">{selectedLesson.title}</h1><div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600"><span>{selectedModule?.title}</span><StatusBadge value={selectedLesson.is_published ? "published" : "draft"} /></div></div>
                 <button className="ph-action inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800" onClick={() => setEditingLesson({ mode: "edit", values: lessonDraft(selectedLesson) })} type="button"><Pencil aria-hidden="true" size={16} /> Edit Lesson</button>
               </div>
-              <LessonMaterialsManager lessonId={selectedLesson.id} lessonTitle={selectedLesson.title} />
+              <LessonSectionsManager lessonId={selectedLesson.id} lessonTitle={selectedLesson.title} />
             </main>
           </div>
         )}
