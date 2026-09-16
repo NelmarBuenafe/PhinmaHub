@@ -3,8 +3,6 @@
 This runbook stops at a verified staging release. It does not authorize a
 production deployment, production data changes, or `QA_ALLOW_PRODUCTION`.
 
-The current audit results are in
-[PHINMAHUB_STAGING_FINAL_QA_REPORT.md](PHINMAHUB_STAGING_FINAL_QA_REPORT.md).
 Use [STAGING_MANUAL_QA_CHECKLIST.md](STAGING_MANUAL_QA_CHECKLIST.md) to record
 each manual test and sign-off. An unchecked item is not a passed test.
 
